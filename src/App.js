@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./index.css";
+import "./Timeline.css";
 import { tripAPI, placesAPI, itineraryAPI } from "./services/api";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
@@ -120,42 +121,99 @@ const Home = ({
 };
 
 // Timeline component
-const Timeline = ({ items }) => {
-  const sorted = [...(items || [])].sort((a, b) =>
-    (a.startTime || "").localeCompare(b.startTime || "")
-  );
+const Timeline = ({ dayPlans }) => {
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const categoryColor = (category) => {
+    const colors = {
+      'historical': 'bg-orange-100 text-orange-800 border border-orange-200',
+      'restaurant': 'bg-blue-100 text-blue-800 border border-blue-200',
+      'shopping': 'bg-green-100 text-green-800 border border-green-200',
+      'nature': 'bg-purple-100 text-purple-800 border border-purple-200',
+      'adventure': 'bg-pink-100 text-pink-800 border border-pink-200',
+      'cultural': 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+      'entertainment': 'bg-teal-100 text-teal-800 border border-teal-200',
+    };
+    return colors[category] || 'bg-gray-100 text-gray-800 border border-gray-200';
+  };
+
   return (
-    <div className="relative pl-6">
-      <div className="absolute left-2 top-0 bottom-0 w-px bg-gray-200" />
-      <div className="space-y-4">
-        {sorted.map((it) => (
-          <div key={it.id} className="relative">
-            <div className="absolute -left-1 top-2 h-3 w-3 rounded-full bg-sky-blue border border-white shadow" />
-            <div className="bg-white rounded-lg border p-3 shadow-travel">
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-600">
-                  {it.startTime} – {it.endTime}
+    <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold text-center text-slate-700 mb-12 embossed-text">
+          Travel Timeline
+        </h1>
+        
+        {dayPlans.map((day, dayIndex) => (
+          <React.Fragment key={day.id}>
+            <div className="glass-card mb-8 p-6 sm:p-8 relative">
+              <h3 className="text-xl sm:text-2xl font-semibold text-slate-700 mb-6 embossed-text text-center">
+                {formatDate(day.date)}
+              </h3>
+              
+              <div className="relative">
+                <div className="space-y-8">
+                  {day.items
+                    .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""))
+                    .map((item, itemIndex) => (
+                      <div key={item.id} className="relative">
+                        <div className="flex items-start relative">
+                          <div className="timeline-dot z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm sm:text-base shadow-sm">
+                            {itemIndex + 1}
+                          </div>
+                          
+                          <div className="ml-6 sm:ml-8 w-full">
+                            <div className="glass-item p-4 sm:p-5">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                <div className="font-semibold text-base sm:text-lg text-slate-700 embossed-text mb-1 sm:mb-0">
+                                  {item.placeName}
+                                </div>
+                                <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${categoryColor(item.category)}`}>
+                                  {item.category}
+                                </span>
+                              </div>
+                              <div className="text-sm sm:text-base text-slate-600 embossed-text">
+                                {item.startTime} – {item.endTime}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Travel time indicator */}
+                        {item.travelTimeToNext && (
+                          <div className="ml-14 sm:ml-16 mt-2 mb-4 text-slate-500 text-xs sm:text-sm embossed-text italic">
+                            🚶‍♂️ {item.travelTimeToNext} min travel to next destination
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  
+                  {day.items.length === 0 && (
+                    <div className="text-slate-500 text-sm sm:text-base ml-14 sm:ml-16 embossed-text italic">
+                      No items scheduled for this day.
+                    </div>
+                  )}
                 </div>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded ${categoryColor(
-                    it.category
-                  )}`}
-                >
-                  {it.category}
-                </span>
               </div>
-              <div className="mt-1 font-semibold">{it.placeName}</div>
-              {it.travelTimeToNext ? (
-                <div className="mt-1 text-xs text-gray-500">
-                  Travel to next: {it.travelTimeToNext} min
-                </div>
-              ) : null}
             </div>
-          </div>
+            
+            {/* Connection between days */}
+            {dayIndex < dayPlans.length - 1 && (
+              <div className="flex justify-center mb-8">
+                <div className="connection-line"></div>
+              </div>
+            )}
+          </React.Fragment>
         ))}
-        {sorted.length === 0 && (
-          <div className="text-gray-500 text-sm">No items scheduled</div>
-        )}
       </div>
     </div>
   );
@@ -805,44 +863,16 @@ const Planner = ({
 const TimelineView = ({
   trip,
   dayPlans,
-  activeDayId,
-  setActiveDayId,
-  activeDay,
 }) => (
   <div className="max-w-6xl mx-auto p-6">
-    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">Timeline</h2>
+    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">Full Trip Timeline</h2>
     {!trip && (
       <div className="bg-white p-4 rounded border">
         Create and save a trip first in Trip Setup.
       </div>
     )}
     {trip && (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-4 rounded-lg shadow-travel">
-          <h3 className="font-semibold mb-3">Days</h3>
-          <div className="space-y-2">
-            {dayPlans.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setActiveDayId(d.id)}
-                className={`w-full text-left p-2 rounded border ${
-                  activeDayId === d.id
-                    ? "bg-sky-blue text-white"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                {formatDate(d.date)} ({d.items.length})
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
-          <h3 className="font-semibold mb-3">
-            {activeDay ? `Day: ${formatDate(activeDay.date)}` : "—"}
-          </h3>
-          <Timeline items={activeDay?.items || []} />
-        </div>
-      </div>
+      <Timeline dayPlans={dayPlans} />
     )}
   </div>
 );
@@ -1225,9 +1255,6 @@ const App = () => {
           <TimelineView
             trip={trip}
             dayPlans={dayPlans}
-            activeDayId={activeDayId}
-            setActiveDayId={setActiveDayId}
-            activeDay={activeDay}
           />
         )}
       </main>
