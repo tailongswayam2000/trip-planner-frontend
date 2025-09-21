@@ -166,7 +166,7 @@ const Nav = ({ currentView, setCurrentView }) => {
   return (
     <nav className="bg-sky-blue text-white p-4 shadow-lg">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">TripPlan</h1>
+        <h1 className="text-2xl font-bold">Plan My Trip</h1>
         <div className="md:hidden">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <svg
@@ -531,161 +531,192 @@ const Planner = ({
   places,
   moveItem,
   removeScheduleItem,
-}) => (
-  <div className="max-w-6xl mx-auto p-6">
-    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-      Daily Planner
-    </h2>
-    {!trip && (
-      <div className="bg-white p-4 rounded border">
-        Create and save a trip first in Trip Setup.
-      </div>
-    )}
-    {trip && (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-4 rounded-lg shadow-travel">
-          <h3 className="font-semibold mb-3">Days</h3>
-          <div className="space-y-2">
-            {dayPlans.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setActiveDayId(d.id)}
-                className={`w-full text-left p-2 rounded border ${
-                  activeDayId === d.id
-                    ? "bg-sky-blue text-white"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                {formatDate(d.date)} ({d.items.length})
-              </button>
-            ))}
-          </div>
+}) => {
+  const [showInstructions, setShowInstructions] = useState(false);
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+        Daily Planner
+      </h2>
+      {!trip && (
+        <div className="bg-white p-4 rounded border">
+          Create and save a trip first in Trip Setup.
         </div>
-
-        <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="font-semibold">
-              Schedule for {activeDay ? formatDate(activeDay.date) : "-"}
-            </h3>
-          </div>
-
-          <form onSubmit={addScheduleItem} className="mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Select place</label>
-                <select
-                  required
-                  className="p-2 border rounded w-full"
-                  value={scheduleForm.placeId}
-                  onChange={(e) =>
-                    setScheduleForm({ ...scheduleForm, placeId: e.target.value })
-                  }
-                >
-                  <option value="">Select place</option>
-                  {places.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Travel to next (min)</label>
-                <input
-                  type="number"
-                  min="0"
-                  className="p-2 border rounded w-full"
-                  placeholder="Travel to next (min)"
-                  value={scheduleForm.travelTimeToNext}
-                  onChange={(e) =>
-                    setScheduleForm({
-                      ...scheduleForm,
-                      travelTimeToNext: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start time</label>
-                <input
-                  required
-                  type="time"
-                  className="p-2 border rounded w-full"
-                  value={scheduleForm.startTime}
-                  onChange={(e) =>
-                    setScheduleForm({
-                      ...scheduleForm,
-                      startTime: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End time</label>
-                <input
-                  required
-                  type="time"
-                  className="p-2 border rounded w-full"
-                  value={scheduleForm.endTime}
-                  onChange={(e) =>
-                    setScheduleForm({ ...scheduleForm, endTime: e.target.value })
-                  }
-                />
-              </div>
-            </div>
+      )}
+      {trip && (
+        <div>
+          <div className="bg-white p-4 rounded-lg shadow-travel mb-6">
             <button
-              type="submit"
-              className="bg-lime-green text-white rounded px-3 py-2 mt-4 w-full"
+              onClick={() => setShowInstructions(!showInstructions)}
+              className="w-full text-left font-semibold text-lg flex justify-between items-center"
             >
-              Add
+              <span>Instructions</span>
+              <span>{showInstructions ? "▲" : "▼"}</span>
             </button>
-          </form>
-
-          <div className="space-y-2">
-            {(activeDay?.items || [])
-              .sort((a, b) => (a.order || 0) - (b.order || 0))
-              .map((it) => (
-                <div
-                  key={it.id}
-                  className="flex items-center justify-between p-2 border rounded"
-                >
-                  <div>
-                    <div className="font-medium">{it.placeName}</div>
-                    <div className="text-xs text-gray-600">
-                      {it.startTime}–{it.endTime} • Order {it.order}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => moveItem(it.id, "up")}
-                      className="px-2 py-1 border rounded"
-                    >
-                      Up
-                    </button>
-                    <button
-                      onClick={() => moveItem(it.id, "down")}
-                      className="px-2 py-1 border rounded"
-                    >
-                      Down
-                    </button>
-                    <button
-                      onClick={() => removeScheduleItem(it.id)}
-                      className="px-2 py-1 border rounded text-red-600"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            {(!activeDay || activeDay.items.length === 0) && (
-              <div className="text-sm text-gray-500">No items yet</div>
+            {showInstructions && (
+              <div className="mt-4 space-y-2 text-sm text-gray-700">
+                <p>
+                  <strong>Select place:</strong> Choose a place from the list of places you have added.
+                </p>
+                <p>
+                  <strong>Start time & End time:</strong> Set the time you plan to visit the place.
+                </p>
+                <p>
+                  <strong>Travel to next (min):</strong> Enter the estimated travel time in minutes to the next place on your itinerary.
+                </p>
+                <p>
+                  Click the <strong>Add</strong> button to add the place to your daily schedule.
+                </p>
+              </div>
             )}
           </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-white p-4 rounded-lg shadow-travel">
+              <h3 className="font-semibold mb-3">Days</h3>
+              <div className="space-y-2">
+                {dayPlans.map((d) => (
+                  <button
+                    key={d.id}
+                    onClick={() => setActiveDayId(d.id)}
+                    className={`w-full text-left p-2 rounded border ${
+                      activeDayId === d.id
+                        ? "bg-sky-blue text-white"
+                        : "hover:bg-gray-50"
+                    }`}
+                  >
+                    {formatDate(d.date)} ({d.items.length})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-semibold">
+                  Schedule for {activeDay ? formatDate(activeDay.date) : "-"}
+                </h3>
+              </div>
+
+              <form onSubmit={addScheduleItem} className="mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Select place</label>
+                    <select
+                      required
+                      className="p-2 border rounded w-full"
+                      value={scheduleForm.placeId}
+                      onChange={(e) =>
+                        setScheduleForm({ ...scheduleForm, placeId: e.target.value })
+                      }
+                    >
+                      <option value="">Select place</option>
+                      {places.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Travel to next (min)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="p-2 border rounded w-full"
+                      placeholder="Travel to next (min)"
+                      value={scheduleForm.travelTimeToNext}
+                      onChange={(e) =>
+                        setScheduleForm({
+                          ...scheduleForm,
+                          travelTimeToNext: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Start time</label>
+                    <input
+                      required
+                      type="time"
+                      className="p-2 border rounded w-full"
+                      value={scheduleForm.startTime}
+                      onChange={(e) =>
+                        setScheduleForm({
+                          ...scheduleForm,
+                          startTime: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">End time</label>
+                    <input
+                      required
+                      type="time"
+                      className="p-2 border rounded w-full"
+                      value={scheduleForm.endTime}
+                      onChange={(e) =>
+                        setScheduleForm({ ...scheduleForm, endTime: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="bg-lime-green text-white rounded px-3 py-2 mt-4 w-full"
+                >
+                  Add
+                </button>
+              </form>
+
+              <div className="space-y-2">
+                {(activeDay?.items || [])
+                  .sort((a, b) => (a.order || 0) - (b.order || 0))
+                  .map((it) => (
+                    <div
+                      key={it.id}
+                      className="flex items-center justify-between p-2 border rounded"
+                    >
+                      <div>
+                        <div className="font-medium">{it.placeName}</div>
+                        <div className="text-xs text-gray-600">
+                          {it.startTime}–{it.endTime} • Order {it.order}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => moveItem(it.id, "up")}
+                          className="px-2 py-1 border rounded"
+                        >
+                          Up
+                        </button>
+                        <button
+                          onClick={() => moveItem(it.id, "down")}
+                          className="px-2 py-1 border rounded"
+                        >
+                          Down
+                        </button>
+                        <button
+                          onClick={() => removeScheduleItem(it.id)}
+                          className="px-2 py-1 border rounded text-red-600"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                {(!activeDay || activeDay.items.length === 0) && (
+                  <div className="text-sm text-gray-500">No items yet</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+    </div>
+  );
+};
 
 const TimelineView = ({
   trip,
