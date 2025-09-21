@@ -3,6 +3,8 @@ import "./index.css";
 import "./Timeline.css";
 import { tripAPI, placesAPI, itineraryAPI } from "./services/api";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const categories = [
   "historical",
@@ -30,32 +32,25 @@ const getDateRange = (start, end) => {
 
 const formatDate = (iso) => {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
+  return d.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 };
 
-const categoryColor = (cat) => {
-  switch (cat) {
-    case "historical":
-      return "bg-tan";
-    case "restaurant":
-      return "bg-lime-green";
-    case "shopping":
-      return "bg-sky-blue";
-    case "nature":
-      return "bg-pale-cyan";
-    case "adventure":
-      return "bg-medium-slate-blue text-white";
-    case "cultural":
-      return "bg-sky-blue/70";
-    case "entertainment":
-      return "bg-lime-green/70";
-    default:
-      return "bg-sky-blue";
-  }
+const categoryColor = (category) => {
+  const colors = {
+    historical: "bg-orange-100 text-orange-800 border border-orange-200",
+    restaurant: "bg-blue-100 text-blue-800 border border-blue-200",
+    shopping: "bg-green-100 text-green-800 border border-green-200",
+    nature: "bg-purple-100 text-purple-800 border border-purple-200",
+    adventure: "bg-pink-100 text-pink-800 border border-pink-200",
+    cultural: "bg-yellow-100 text-yellow-800 border border-yellow-200",
+    entertainment: "bg-teal-100 text-teal-800 border border-teal-200",
+  };
+  return colors[category] || "bg-gray-100 text-gray-800 border border-gray-200";
 };
 
 const Home = ({
@@ -122,62 +117,44 @@ const Home = ({
 
 // Timeline component
 const Timeline = ({ dayPlans }) => {
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
-
-  const categoryColor = (category) => {
-    const colors = {
-      'historical': 'bg-orange-100 text-orange-800 border border-orange-200',
-      'restaurant': 'bg-blue-100 text-blue-800 border border-blue-200',
-      'shopping': 'bg-green-100 text-green-800 border border-green-200',
-      'nature': 'bg-purple-100 text-purple-800 border border-purple-200',
-      'adventure': 'bg-pink-100 text-pink-800 border border-pink-200',
-      'cultural': 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-      'entertainment': 'bg-teal-100 text-teal-800 border border-teal-200',
-    };
-    return colors[category] || 'bg-gray-100 text-gray-800 border border-gray-200';
-  };
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-center text-slate-700 mb-12 embossed-text">
           Travel Timeline
         </h1>
-        
+
         {dayPlans.map((day, dayIndex) => (
           <React.Fragment key={day.id}>
             <div className="glass-card mb-8 p-6 sm:p-8 relative">
               <h3 className="text-xl sm:text-2xl font-semibold text-slate-700 mb-6 embossed-text text-center">
                 {formatDate(day.date)}
               </h3>
-              
+
               <div className="relative">
                 <div className="space-y-8">
                   {day.items
-                    .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""))
+                    .sort((a, b) =>
+                      (a.startTime || "").localeCompare(b.startTime || "")
+                    )
                     .map((item, itemIndex) => (
                       <div key={item.id} className="relative">
                         <div className="flex items-start relative">
                           <div className="timeline-dot z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm sm:text-base shadow-sm">
                             {itemIndex + 1}
                           </div>
-                          
+
                           <div className="ml-6 sm:ml-8 w-full">
                             <div className="glass-item p-4 sm:p-5">
                               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
                                 <div className="font-semibold text-base sm:text-lg text-slate-700 embossed-text mb-1 sm:mb-0">
                                   {item.placeName}
                                 </div>
-                                <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${categoryColor(item.category)}`}>
+                                <span
+                                  className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${categoryColor(
+                                    item.category
+                                  )}`}
+                                >
                                   {item.category}
                                 </span>
                               </div>
@@ -187,16 +164,17 @@ const Timeline = ({ dayPlans }) => {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Travel time indicator */}
                         {item.travelTimeToNext && (
                           <div className="ml-14 sm:ml-16 mt-2 mb-4 text-slate-500 text-xs sm:text-sm embossed-text italic">
-                            🚶‍♂️ {item.travelTimeToNext} min travel to next destination
+                            🚶‍♂️ {item.travelTimeToNext} min travel to next
+                            destination
                           </div>
                         )}
                       </div>
                     ))}
-                  
+
                   {day.items.length === 0 && (
                     <div className="text-slate-500 text-sm sm:text-base ml-14 sm:ml-16 embossed-text italic">
                       No items scheduled for this day.
@@ -205,7 +183,7 @@ const Timeline = ({ dayPlans }) => {
                 </div>
               </div>
             </div>
-            
+
             {/* Connection between days */}
             {dayIndex < dayPlans.length - 1 && (
               <div className="flex justify-center mb-8">
@@ -860,22 +838,336 @@ const Planner = ({
   );
 };
 
-const TimelineView = ({
-  trip,
-  dayPlans,
-}) => (
-  <div className="max-w-6xl mx-auto p-6">
-    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">Full Trip Timeline</h2>
-    {!trip && (
-      <div className="bg-white p-4 rounded border">
-        Create and save a trip first in Trip Setup.
-      </div>
-    )}
-    {trip && (
-      <Timeline dayPlans={dayPlans} />
-    )}
-  </div>
-);
+const TimelineView = ({ trip, dayPlans }) => {
+  // Professional PDF Generation Code
+  // Replace your existing handleDownloadPdf function with this
+
+  // Professional PDF Generation Code - Fixed Version
+  // Replace your existing handleDownloadPdf function with this
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF("p", "mm", "a4");
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 25; // Increased margin for better spacing
+    const contentWidth = pageWidth - margin * 2;
+    let yPos = margin;
+
+    // Color palette
+    const colors = {
+      primary: [41, 98, 255], // Blue
+      secondary: [100, 116, 139], // Slate
+      accent: [59, 130, 246], // Light blue
+      text: [15, 23, 42], // Dark slate
+      lightText: [71, 85, 105], // Medium slate
+      background: [248, 250, 252], // Very light slate
+      border: [226, 232, 240], // Light border
+    };
+
+    // Helper functions
+    const addPage = () => {
+      doc.addPage();
+      yPos = margin;
+    };
+
+    const checkPageBreak = (requiredSpace = 20) => {
+      if (yPos + requiredSpace > pageHeight - margin - 10) {
+        // Leave space for footer
+        addPage();
+      }
+    };
+
+    const setColor = (colorArray, type = "text") => {
+      if (type === "text") {
+        doc.setTextColor(colorArray[0], colorArray[1], colorArray[2]);
+      } else if (type === "fill") {
+        doc.setFillColor(colorArray[0], colorArray[1], colorArray[2]);
+      } else if (type === "draw") {
+        doc.setDrawColor(colorArray[0], colorArray[1], colorArray[2]);
+      }
+    };
+
+    const addText = (text, x, y, options = {}) => {
+      // Ensure text stays within margins
+      if (x < margin) x = margin;
+      if (x > pageWidth - margin) x = pageWidth - margin;
+      doc.text(text, x, y, options);
+    };
+
+    const addRect = (x, y, width, height, style = "F") => {
+      // Ensure rectangles stay within margins
+      if (x < 0) x = 0;
+      if (x + width > pageWidth) width = pageWidth - x;
+      doc.rect(x, y, width, height, style);
+    };
+
+    // === COVER PAGE ===
+    // Header background
+    setColor(colors.primary, "fill");
+    addRect(0, 0, pageWidth, 50, "F");
+
+    // Title
+    setColor([255, 255, 255], "text");
+    doc.setFontSize(24);
+    doc.setFont("helvetica", "bold");
+    addText("TRAVEL ITINERARY", margin, 30);
+
+    // Trip destination
+    yPos = 70;
+    setColor(colors.text, "text");
+    doc.setFontSize(28);
+    doc.setFont("helvetica", "bold");
+    addText(`Trip to ${trip.locationOfStay}`, margin, yPos);
+
+    yPos += 15;
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "normal");
+    setColor(colors.lightText, "text");
+    addText(
+      `${formatDate(trip.checkInDate)} - ${formatDate(trip.checkOutDate)}`,
+      margin,
+      yPos
+    );
+
+    // Trip details section
+    yPos += 25;
+    setColor(colors.text, "text");
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    addText("Trip Details", margin, yPos);
+
+    yPos += 10;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    setColor(colors.lightText, "text");
+
+    const duration = Math.ceil(
+      (new Date(trip.checkOutDate) - new Date(trip.checkInDate)) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    addText(`Duration: ${duration} days`, margin, yPos);
+    yPos += 8;
+    addText(`Number of travelers: ${trip.numberOfPeople}`, margin, yPos);
+    yPos += 8;
+    addText(`Travel mode: ${trip.travelMode}`, margin, yPos);
+    yPos += 8;
+    addText(`Budget: ₹${trip.budget.toLocaleString()}`, margin, yPos);
+    yPos += 8;
+    addText(
+      `Total activities: ${dayPlans.reduce(
+        (acc, day) => acc + day.items.length,
+        0
+      )}`,
+      margin,
+      yPos
+    );
+
+    // Description section
+    if (trip.description) {
+      yPos += 20;
+      setColor(colors.text, "text");
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      addText("Trip Overview", margin, yPos);
+
+      yPos += 10;
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      setColor(colors.lightText, "text");
+
+      // Word wrap description within margins
+      const lines = doc.splitTextToSize(trip.description, contentWidth);
+      lines.forEach((line) => {
+        addText(line, margin, yPos);
+        yPos += 6;
+      });
+    }
+
+    // === DETAILED ITINERARY ===
+    addPage();
+
+    // Page header
+    setColor(colors.primary, "fill");
+    addRect(0, 0, pageWidth, 35, "F");
+
+    setColor([255, 255, 255], "text");
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    addText("DETAILED ITINERARY", margin, 22);
+
+    yPos = 50;
+
+    // Daily itinerary
+    dayPlans.forEach((day, dayIndex) => {
+      checkPageBreak(40);
+
+      // Day header
+      setColor(colors.accent, "fill");
+      addRect(margin, yPos, contentWidth, 15, "F");
+
+      setColor([255, 255, 255], "text");
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      addText(
+        `Day ${dayIndex + 1}: ${formatDate(day.date)}`,
+        margin + 5,
+        yPos + 10
+      );
+
+      yPos += 25;
+
+      if (day.items.length === 0) {
+        setColor(colors.lightText, "text");
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "italic");
+        addText("No activities scheduled for this day", margin + 10, yPos);
+        yPos += 20;
+      } else {
+        // Timeline
+        const timelineX = margin + 15;
+        const contentStartX = margin + 35;
+
+        day.items
+          .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""))
+          .forEach((item, itemIndex) => {
+            checkPageBreak(30);
+
+            // Timeline circle with number
+            setColor(colors.primary, "fill");
+            doc.circle(timelineX, yPos + 8, 4, "F");
+
+            // Number in circle - properly centered
+            setColor([255, 255, 255], "text");
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            const numberText = `${itemIndex + 1}`;
+            const numberWidth = doc.getTextWidth(numberText);
+            addText(numberText, timelineX - numberWidth / 2, yPos + 10);
+
+            // Timeline connecting line
+            if (itemIndex < day.items.length - 1) {
+              setColor(colors.border, "draw");
+              doc.setLineWidth(1);
+              doc.line(timelineX, yPos + 12, timelineX, yPos + 35);
+            }
+
+            // Activity content box
+            setColor(colors.background, "fill");
+            addRect(contentStartX, yPos, contentWidth - 20, 20, "F");
+            setColor(colors.border, "draw");
+            doc.setLineWidth(0.5);
+            addRect(contentStartX, yPos, contentWidth - 20, 20, "S");
+
+            // Activity name
+            setColor(colors.text, "text");
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            addText(item.placeName, contentStartX + 5, yPos + 8);
+
+            // Time
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            setColor(colors.lightText, "text");
+            addText(
+              `${item.startTime} - ${item.endTime}`,
+              contentStartX + 5,
+              yPos + 15
+            );
+
+            // Category - simple text
+            const categoryText = `Category: ${item.category}`;
+            const categoryX = contentStartX + contentWidth - 80;
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            setColor(colors.secondary, "text");
+            addText(categoryText, categoryX, yPos + 8);
+
+            yPos += 25;
+
+            // Travel time - clean format
+            if (item.travelTimeToNext) {
+              setColor(colors.lightText, "text");
+              doc.setFontSize(9);
+              doc.setFont("helvetica", "italic");
+              addText(
+                `Travel time to next location: ${item.travelTimeToNext} minutes`,
+                contentStartX + 5,
+                yPos
+              );
+              yPos += 10;
+            }
+
+            yPos += 5; // Space between activities
+          });
+      }
+
+      yPos += 15; // Space between days
+    });
+
+    // Helper function to add footer to all pages
+    const addFooter = () => {
+      const totalPages = doc.internal.getNumberOfPages();
+
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+
+        // Simple footer line
+        setColor(colors.lightText, "text");
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+
+        const footerY = pageHeight - 15;
+        const footerText = `Generated on ${new Date().toLocaleDateString(
+          "en-US",
+          {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }
+        )} | Trip to ${trip.locationOfStay} | Page ${i} of ${totalPages}`;
+
+        // Center the footer text
+        const footerWidth = doc.getTextWidth(footerText);
+        const footerX = (pageWidth - footerWidth) / 2;
+        addText(footerText, footerX, footerY);
+      }
+    };
+
+    // Add footers to all pages
+    addFooter();
+
+    // Save the document
+    doc.save(`${trip.locationOfStay.replace(/\s+/g, "_")}_Itinerary.pdf`);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+        Full Trip Timeline
+      </h2>
+      {!trip && (
+        <div className="bg-white p-4 rounded border">
+          Create and save a trip first in Trip Setup.
+        </div>
+      )}
+      {trip && (
+        <>
+          <button
+            onClick={handleDownloadPdf}
+            className="mb-6 px-4 py-2 bg-sky-blue text-white rounded-lg hover:bg-medium-slate-blue"
+          >
+            Download PDF Report
+          </button>
+          {/* The timeline-content div is no longer needed for PDF generation via html2canvas */}
+          <div>
+            <Timeline dayPlans={dayPlans} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const EditScheduleItemModal = ({ isOpen, onClose, item, onSave }) => {
   const [editedStartTime, setEditedStartTime] = useState(item?.startTime || "");
@@ -1252,10 +1544,7 @@ const App = () => {
           />
         )}
         {currentView === "timeline" && (
-          <TimelineView
-            trip={trip}
-            dayPlans={dayPlans}
-          />
+          <TimelineView trip={trip} dayPlans={dayPlans} />
         )}
       </main>
     </div>
