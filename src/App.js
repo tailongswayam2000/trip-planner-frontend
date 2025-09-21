@@ -42,15 +42,15 @@ const formatDate = (iso) => {
 
 const categoryColor = (category) => {
   const colors = {
-    historical: "bg-gray-200 text-gray-800",
-    restaurant: "bg-blue-100 text-blue-800",
-    shopping: "bg-green-100 text-green-800",
-    nature: "bg-emerald-100 text-emerald-800",
-    adventure: "bg-purple-100 text-purple-800",
-    cultural: "bg-indigo-100 text-indigo-800",
-    entertainment: "bg-pink-100 text-pink-800",
+    'historical': 'bg-[#c9a37c]/20 text-[#c9a37c]', // Tan with transparency
+    'restaurant': 'bg-[#7bbbff]/20 text-[#7bbbff]', // Sky Blue with transparency
+    'shopping': 'bg-[#9ed454]/20 text-[#9ed454]', // Lime Green with transparency
+    'nature': 'bg-[#bcf5ff]/20 text-[#bcf5ff]', // Pale Cyan with transparency
+    'adventure': 'bg-[#5c55e1]/20 text-[#5c55e1]', // Medium Slate Blue with transparency
+    'cultural': 'bg-[#7bbbff]/20 text-[#7bbbff]', // Sky Blue with transparency
+    'entertainment': 'bg-[#9ed454]/20 text-[#9ed454]', // Lime Green with transparency
   };
-  return colors[category] || "bg-gray-100 text-gray-800";
+  return colors[category] || 'bg-gray-100 text-gray-800';
 };
 
 const Home = ({
@@ -94,7 +94,7 @@ const Home = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => onSelectTrip(trip.id)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-150 ease-in-out"
+                      className="px-3 py-1 bg-[#7bbbff] text-white rounded hover:bg-[#5c55e1] transition duration-150 ease-in-out"
                     >
                       Select
                     </button>
@@ -211,7 +211,7 @@ const Nav = ({ currentView, setCurrentView }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-gray-800 text-white p-4 shadow-lg">
+    <nav className="bg-[#5c55e1] text-white p-4 shadow-lg">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <h1 className="text-2xl font-bold">Plan My Trip</h1>
         <div className="md:hidden">
@@ -236,7 +236,9 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("home")}
             className={`px-3 py-2 rounded ${
-              currentView === "home" ? "bg-blue-600" : "hover:bg-gray-700"
+              currentView === "home"
+                ? "bg-[#7bbbff]"
+                : "hover:bg-[#5c55e1]/80"
             }`}
           >
             Home
@@ -244,7 +246,9 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("places")}
             className={`px-3 py-2 rounded ${
-              currentView === "places" ? "bg-blue-600" : "hover:bg-gray-700"
+              currentView === "places"
+                ? "bg-[#7bbbff]"
+                : "hover:bg-[#5c55e1]/80"
             }`}
           >
             Places
@@ -252,7 +256,9 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("planner")}
             className={`px-3 py-2 rounded ${
-              currentView === "planner" ? "bg-blue-600" : "hover:bg-gray-700"
+              currentView === "planner"
+                ? "bg-[#7bbbff]"
+                : "hover:bg-[#5c55e1]/80"
             }`}
           >
             Daily Planner
@@ -260,7 +266,9 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("timeline")}
             className={`px-3 py-2 rounded ${
-              currentView === "timeline" ? "bg-blue-600" : "hover:bg-gray-700"
+              currentView === "timeline"
+                ? "bg-[#7bbbff]"
+                : "hover:bg-[#5c55e1]/80"
             }`}
           >
             Timeline
@@ -275,7 +283,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "home" ? "bg-blue-600" : ""
+              currentView === "home" ? "bg-[#7bbbff]" : ""
             }`}
           >
             Home
@@ -286,7 +294,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "places" ? "bg-blue-600" : ""
+              currentView === "places" ? "bg-[#7bbbff]" : ""
             }`}
           >
             Places
@@ -297,7 +305,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "planner" ? "bg-blue-600" : ""
+              currentView === "planner" ? "bg-[#7bbbff]" : ""
             }`}
           >
             Daily Planner
@@ -308,7 +316,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "timeline" ? "bg-blue-600" : ""
+              currentView === "timeline" ? "bg-[#7bbbff]" : ""
             }`}
           >
             Timeline
@@ -438,7 +446,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
       </div>
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out"
+        className="w-full bg-[#9ed454] text-white py-3 rounded-lg hover:bg-[#7cb83e] transition duration-150 ease-in-out"
       >
         Save Trip Details
       </button>
@@ -646,7 +654,7 @@ const Planner = ({
                     onClick={() => setActiveDayId(d.id)}
                     className={`w-full text-left p-2 rounded border border-gray-300 ${
                       activeDayId === d.id
-                        ? "bg-blue-600 text-white"
+                        ? "bg-[#7bbbff] text-white"
                         : "hover:bg-gray-100 text-gray-800"
                     }`}
                   >
@@ -671,7 +679,7 @@ const Planner = ({
                     </label>
                     <select
                       required
-                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-[#7bbbff]"
                       value={scheduleForm.placeId}
                       onChange={(e) =>
                         setScheduleForm({
@@ -695,7 +703,7 @@ const Planner = ({
                     <input
                       type="number"
                       min="0"
-                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-[#7bbbff]"
                       placeholder="Travel to next (min)"
                       value={scheduleForm.travelTimeToNext}
                       onChange={(e) =>
@@ -713,7 +721,7 @@ const Planner = ({
                     <input
                       required
                       type="time"
-                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-[#7bbbff]"
                       value={scheduleForm.startTime}
                       onChange={(e) =>
                         setScheduleForm({
@@ -730,7 +738,7 @@ const Planner = ({
                     <input
                       required
                       type="time"
-                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-[#7bbbff]"
                       value={scheduleForm.endTime}
                       onChange={(e) =>
                         setScheduleForm({
@@ -743,7 +751,7 @@ const Planner = ({
                 </div>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white rounded px-3 py-2 mt-4 w-full hover:bg-blue-700 transition duration-150 ease-in-out"
+                  className="bg-[#9ed454] text-white rounded px-3 py-2 mt-4 w-full hover:bg-[#7cb83e] transition duration-150 ease-in-out"
                 >
                   Add
                 </button>
@@ -756,7 +764,7 @@ const Planner = ({
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={`space-y-2 p-1 rounded ${
-                        snapshot.isDraggingOver ? "bg-blue-50" : ""
+                        snapshot.isDraggingOver ? "bg-[#bcf5ff]/20" : ""
                       }`}
                     >
                       {(activeDay?.items || [])
@@ -779,7 +787,7 @@ const Planner = ({
                                     ? "grabbing"
                                     : "grab",
                                   backgroundColor: snapshot.isDragging
-                                    ? "rgba(220,230,250,0.5)"
+                                    ? "rgba(188,245,255,0.2)"
                                     : "white",
                                 }}
                                 className="flex items-center justify-between p-2 border border-gray-200 rounded shadow-sm"
@@ -839,7 +847,10 @@ const Planner = ({
   );
 };
 
-const TimelineView = ({ trip, dayPlans }) => {
+const TimelineView = ({
+  trip,
+  dayPlans,
+}) => {
   const handleDownloadPdf = () => {
     const doc = new jsPDF();
     let yPos = 15; // Initial Y position
@@ -863,19 +874,13 @@ const TimelineView = ({ trip, dayPlans }) => {
 
     // --- Trip Overview ---
     doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
+    doc.setFont('helvetica', 'bold');
     addText(`Trip to ${trip.locationOfStay}`, margin, yPos);
     yPos += 5; // Extra space after title
 
     doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    addText(
-      `Dates: ${formatDate(trip.checkInDate)} - ${formatDate(
-        trip.checkOutDate
-      )}`,
-      margin,
-      yPos
-    );
+    doc.setFont('helvetica', 'normal');
+    addText(`Dates: ${formatDate(trip.checkInDate)} - ${formatDate(trip.checkOutDate)}`, margin, yPos);
     addText(`Travel Mode: ${trip.travelMode}`, margin, yPos);
     addText(`Number of People: ${trip.numberOfPeople}`, margin, yPos);
     addText(`Budget: ₹${trip.budget}`, margin, yPos);
@@ -884,21 +889,21 @@ const TimelineView = ({ trip, dayPlans }) => {
 
     // --- Timeline Details ---
     doc.setFontSize(18);
-    doc.setFont("helvetica", "bold");
-    addText("Detailed Itinerary", margin, yPos);
+    doc.setFont('helvetica', 'bold');
+    addText('Detailed Itinerary', margin, yPos);
     yPos += 5; // Extra space after section title
 
     dayPlans.forEach((day, dayIndex) => {
       checkPageBreak();
       doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
+      doc.setFont('helvetica', 'bold');
       addText(`\nDay ${dayIndex + 1}: ${formatDate(day.date)}`, margin, yPos);
       yPos += 3; // Space after day title
 
       if (day.items.length === 0) {
         doc.setFontSize(10);
-        doc.setFont("helvetica", "italic");
-        addText("No items scheduled for this day.", margin + 5, yPos);
+        doc.setFont('helvetica', 'italic');
+        addText('No items scheduled for this day.', margin + 5, yPos);
         yPos += 5; // Space after message
       } else {
         day.items
@@ -906,23 +911,17 @@ const TimelineView = ({ trip, dayPlans }) => {
           .forEach((item, itemIndex) => {
             checkPageBreak();
             doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
+            doc.setFont('helvetica', 'normal');
 
-            const itemText = `${itemIndex + 1}. ${item.placeName} (${
-              item.startTime
-            } - ${item.endTime})`;
+            const itemText = `${itemIndex + 1}. ${item.placeName} (${item.startTime} - ${item.endTime})`;
             addText(itemText, margin + 5, yPos);
 
             doc.setFontSize(10);
-            doc.setFont("helvetica", "italic");
+            doc.setFont('helvetica', 'italic');
             addText(`   Category: ${item.category}`, margin + 5, yPos);
 
             if (item.travelTimeToNext) {
-              addText(
-                `   Travel to next: ${item.travelTimeToNext} min`,
-                margin + 5,
-                yPos
-              );
+              addText(`   Travel to next: ${item.travelTimeToNext} min`, margin + 5, yPos);
             }
             yPos += 3; // Space after item details
           });
@@ -935,7 +934,7 @@ const TimelineView = ({ trip, dayPlans }) => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      {/* <h2 className="text-3xl font-bold text-slate-700 mb-6">Full Trip Timeline</h2> */}
+      <h2 className="text-3xl font-bold text-slate-700 mb-6">Full Trip Timeline</h2>
       {!trip && (
         <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
           Create and save a trip first in Trip Setup.
@@ -945,7 +944,7 @@ const TimelineView = ({ trip, dayPlans }) => {
         <>
           <button
             onClick={handleDownloadPdf}
-            className="mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out"
+            className="mb-6 px-4 py-2 bg-[#7bbbff] text-white rounded-lg hover:bg-[#5c55e1] transition duration-150 ease-in-out"
           >
             Download PDF Report
           </button>
@@ -958,6 +957,8 @@ const TimelineView = ({ trip, dayPlans }) => {
     </div>
   );
 };
+
+
 
 const EditScheduleItemModal = ({ isOpen, onClose, item, onSave }) => {
   const [editedStartTime, setEditedStartTime] = useState(item?.startTime || "");
