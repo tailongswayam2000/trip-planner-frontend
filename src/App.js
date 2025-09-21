@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./index.css";
 import { tripAPI, placesAPI, itineraryAPI } from "./services/api";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const categories = [
   "historical",
@@ -379,9 +380,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
           type="number"
           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
           value={tripForm.budget}
-          onChange={(e) =>
-            setTripForm({ ...tripForm, budget: e.target.value })
-          }
+          onChange={(e) => setTripForm({ ...tripForm, budget: e.target.value })}
           placeholder="50000"
         />
       </div>
@@ -415,25 +414,36 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
       Manage Places
     </h2>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <form onSubmit={addPlace} className="bg-white p-6 rounded-lg shadow-travel space-y-4">
+      <form
+        onSubmit={addPlace}
+        className="bg-white p-6 rounded-lg shadow-travel space-y-4"
+      >
         <h3 className="text-xl font-semibold">Add New Place</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Place name</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Place name
+            </label>
             <input
               required
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
               placeholder="Place name"
               value={placeForm.name}
-              onChange={(e) => setPlaceForm({ ...placeForm, name: e.target.value })}
+              onChange={(e) =>
+                setPlaceForm({ ...placeForm, name: e.target.value })
+              }
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Category
+            </label>
             <select
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
               value={placeForm.category}
-              onChange={(e) => setPlaceForm({ ...placeForm, category: e.target.value })}
+              onChange={(e) =>
+                setPlaceForm({ ...placeForm, category: e.target.value })
+              }
             >
               {categories.map((c) => (
                 <option key={c} value={c}>
@@ -443,7 +453,9 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Duration (minutes)
+            </label>
             <input
               type="number"
               min="5"
@@ -459,26 +471,37 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Address</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Address
+            </label>
             <input
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
               placeholder="Address"
               value={placeForm.address}
-              onChange={(e) => setPlaceForm({ ...placeForm, address: e.target.value })}
+              onChange={(e) =>
+                setPlaceForm({ ...placeForm, address: e.target.value })
+              }
             />
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Notes</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Notes
+          </label>
           <textarea
             rows={2}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
             placeholder="Notes"
             value={placeForm.notes}
-            onChange={(e) => setPlaceForm({ ...placeForm, notes: e.target.value })}
+            onChange={(e) =>
+              setPlaceForm({ ...placeForm, notes: e.target.value })
+            }
           />
         </div>
-        <button type="submit" className="w-full bg-lime-green text-white py-2 rounded-lg">
+        <button
+          type="submit"
+          className="w-full bg-lime-green text-white py-2 rounded-lg"
+        >
           Add Place
         </button>
       </form>
@@ -529,8 +552,9 @@ const Planner = ({
   scheduleForm,
   setScheduleForm,
   places,
-  moveItem,
   removeScheduleItem,
+  onDragEnd,
+  onEditClick,
 }) => {
   const [showInstructions, setShowInstructions] = useState(false);
 
@@ -557,16 +581,20 @@ const Planner = ({
             {showInstructions && (
               <div className="mt-4 space-y-2 text-sm text-gray-700">
                 <p>
-                  <strong>Select place:</strong> Choose a place from the list of places you have added.
+                  <strong>Select place:</strong> Choose a place from the list of
+                  places you have added.
                 </p>
                 <p>
-                  <strong>Start time & End time:</strong> Set the time you plan to visit the place.
+                  <strong>Start time & End time:</strong> Set the time you plan
+                  to visit the place.
                 </p>
                 <p>
-                  <strong>Travel to next (min):</strong> Enter the estimated travel time in minutes to the next place on your itinerary.
+                  <strong>Travel to next (min):</strong> Enter the estimated
+                  travel time in minutes to the next place on your itinerary.
                 </p>
                 <p>
-                  Click the <strong>Add</strong> button to add the place to your daily schedule.
+                  Click the <strong>Add</strong> button to add the place to your
+                  daily schedule.
                 </p>
               </div>
             )}
@@ -574,7 +602,7 @@ const Planner = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white p-4 rounded-lg shadow-travel">
               <h3 className="font-semibold mb-3">Days</h3>
-              <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-2">
                 {dayPlans.map((d) => (
                   <button
                     key={d.id}
@@ -601,13 +629,18 @@ const Planner = ({
               <form onSubmit={addScheduleItem} className="mb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Select place</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Select place
+                    </label>
                     <select
                       required
                       className="p-2 border rounded w-full"
                       value={scheduleForm.placeId}
                       onChange={(e) =>
-                        setScheduleForm({ ...scheduleForm, placeId: e.target.value })
+                        setScheduleForm({
+                          ...scheduleForm,
+                          placeId: e.target.value,
+                        })
                       }
                     >
                       <option value="">Select place</option>
@@ -619,7 +652,9 @@ const Planner = ({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Travel to next (min)</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Travel to next (min)
+                    </label>
                     <input
                       type="number"
                       min="0"
@@ -635,7 +670,9 @@ const Planner = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Start time</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Start time
+                    </label>
                     <input
                       required
                       type="time"
@@ -650,14 +687,19 @@ const Planner = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">End time</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      End time
+                    </label>
                     <input
                       required
                       type="time"
                       className="p-2 border rounded w-full"
                       value={scheduleForm.endTime}
                       onChange={(e) =>
-                        setScheduleForm({ ...scheduleForm, endTime: e.target.value })
+                        setScheduleForm({
+                          ...scheduleForm,
+                          endTime: e.target.value,
+                        })
                       }
                     />
                   </div>
@@ -670,46 +712,88 @@ const Planner = ({
                 </button>
               </form>
 
-              <div className="space-y-2">
-                {(activeDay?.items || [])
-                  .sort((a, b) => (a.order || 0) - (b.order || 0))
-                  .map((it) => (
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="planner-list">
+                  {(provided, snapshot) => (
                     <div
-                      key={it.id}
-                      className="flex items-center justify-between p-2 border rounded"
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`space-y-2 p-1 rounded ${
+                        snapshot.isDraggingOver ? "bg-sky-blue/10" : ""
+                      }`}
                     >
-                      <div>
-                        <div className="font-medium">{it.placeName}</div>
-                        <div className="text-xs text-gray-600">
-                          {it.startTime}–{it.endTime} • Order {it.order}
+                      {(activeDay?.items || [])
+                        .sort((a, b) => (a.order || 0) - (b.order || 0))
+                        .map((it, index) => (
+                          <Draggable
+                            key={it.id}
+                            draggableId={it.id.toString()}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                // Merge library-provided styles so it positions while dragging
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  // Optional visual cues
+                                  cursor: snapshot.isDragging
+                                    ? "grabbing"
+                                    : "grab",
+                                  backgroundColor: snapshot.isDragging
+                                    ? "rgba(123,187,255,0.1)"
+                                    : "white",
+                                }}
+                                className="flex items-center justify-between p-2 border rounded"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {/* Dedicated drag handle */}
+                                  <span
+                                    {...provided.dragHandleProps}
+                                    className="px-2 py-1 rounded bg-gray-100 text-gray-600 cursor-grab select-none"
+                                    title="Drag to reorder"
+                                  >
+                                    |||
+                                  </span>
+                                  <div>
+                                    <div className="font-medium">
+                                      {it.placeName}
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {it.startTime}–{it.endTime} • Order{" "}
+                                      {it.order}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => onEditClick(it)}
+                                    className="px-2 py-1 border rounded"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => removeScheduleItem(it.id)}
+                                    className="px-2 py-1 border rounded text-red-600"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                      {provided.placeholder}
+                      {(!activeDay || activeDay.items.length === 0) && (
+                        <div className="text-sm text-gray-500">
+                          No items yet
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => moveItem(it.id, "up")}
-                          className="px-2 py-1 border rounded"
-                        >
-                          Up
-                        </button>
-                        <button
-                          onClick={() => moveItem(it.id, "down")}
-                          className="px-2 py-1 border rounded"
-                        >
-                          Down
-                        </button>
-                        <button
-                          onClick={() => removeScheduleItem(it.id)}
-                          className="px-2 py-1 border rounded text-red-600"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                      )}
                     </div>
-                  ))}
-                {(!activeDay || activeDay.items.length === 0) && (
-                  <div className="text-sm text-gray-500">No items yet</div>
-                )}
-              </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </div>
           </div>
         </div>
@@ -726,9 +810,7 @@ const TimelineView = ({
   activeDay,
 }) => (
   <div className="max-w-6xl mx-auto p-6">
-    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-      Timeline
-    </h2>
+    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">Timeline</h2>
     {!trip && (
       <div className="bg-white p-4 rounded border">
         Create and save a trip first in Trip Setup.
@@ -764,6 +846,110 @@ const TimelineView = ({
     )}
   </div>
 );
+
+const EditScheduleItemModal = ({ isOpen, onClose, item, onSave }) => {
+  const [editedStartTime, setEditedStartTime] = useState(item?.startTime || "");
+  const [editedEndTime, setEditedEndTime] = useState(item?.endTime || "");
+  const [editedTravelTimeToNext, setEditedTravelTimeToNext] = useState(
+    item?.travelTimeToNext || ""
+  );
+
+  useEffect(() => {
+    if (item) {
+      setEditedStartTime(item.startTime || "");
+      setEditedEndTime(item.endTime || "");
+      setEditedTravelTimeToNext(item.travelTimeToNext || "");
+    }
+  }, [item]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      ...item,
+      startTime: editedStartTime,
+      endTime: editedEndTime,
+      travelTimeToNext: editedTravelTimeToNext
+        ? Number(editedTravelTimeToNext)
+        : null,
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-[92%]">
+        <h3 className="text-2xl font-bold mb-6 text-medium-slate-blue">
+          Edit Schedule Item
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Place Name
+            </label>
+            <input
+              type="text"
+              value={item.placeName}
+              disabled
+              className="w-full p-3 border rounded-lg bg-gray-50 cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Start Time
+            </label>
+            <input
+              type="time"
+              required
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              value={editedStartTime}
+              onChange={(e) => setEditedStartTime(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              End Time
+            </label>
+            <input
+              type="time"
+              required
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              value={editedEndTime}
+              onChange={(e) => setEditedEndTime(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Travel to next (min)
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              value={editedTravelTimeToNext}
+              onChange={(e) => setEditedTravelTimeToNext(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-4 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-lime-green text-white rounded-lg hover:bg-lime-green/90"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const App = () => {
   const [currentView, setCurrentView] = useState("home");
@@ -806,6 +992,27 @@ const App = () => {
     endTime: "10:00",
     travelTimeToNext: "",
   });
+
+  // Edit schedule item modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  const handleEditClick = (item) => {
+    setEditingItem(item);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async (updatedItem) => {
+    if (!trip || !activeDayId || !updatedItem) return;
+    await itineraryAPI.updatePlaceInDay(
+      activeDayId,
+      updatedItem.id,
+      updatedItem
+    );
+    await refreshItinerary(trip.id);
+    setEditModalOpen(false);
+    setEditingItem(null);
+  };
 
   // Load initial data
   useEffect(() => {
@@ -940,22 +1147,29 @@ const App = () => {
     await refreshItinerary(trip.id);
   };
 
-  // Reorder items up/down
-  const moveItem = async (itemId, dir) => {
+  // Reorder items with drag and drop
+  const handleOnDragEnd = async (result) => {
+    if (!result.destination) return;
     if (!trip || !activeDayId) return;
+
     const day = dayPlans.find((d) => d.id === activeDayId);
-    const items = [...day.items].sort(
-      (a, b) => (a.order || 0) - (b.order || 0)
+    const items = Array.from(day.items);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      order: index + 1,
+    }));
+
+    const updatedDayPlans = dayPlans.map((d) =>
+      d.id === activeDayId ? { ...d, items: updatedItems } : d
     );
-    const idx = items.findIndex((i) => i.id === itemId);
-    const swapIdx = dir === "up" ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= items.length) return;
-    const tmp = items[idx].order;
-    items[idx].order = items[swapIdx].order;
-    items[swapIdx].order = tmp;
+    setDayPlans(updatedDayPlans);
+
     await itineraryAPI.reorderPlaces(
       activeDayId,
-      items.map((i) => ({ id: i.id, order: i.order }))
+      updatedItems.map((i) => ({ id: i.id, order: i.order }))
     );
     await refreshItinerary(trip.id);
   };
@@ -994,8 +1208,17 @@ const App = () => {
             scheduleForm={scheduleForm}
             setScheduleForm={setScheduleForm}
             places={places}
-            moveItem={moveItem}
             removeScheduleItem={removeScheduleItem}
+            onDragEnd={handleOnDragEnd}
+            onEditClick={handleEditClick}
+          />
+        )}
+        {editingItem && (
+          <EditScheduleItemModal
+            isOpen={editModalOpen}
+            onClose={() => setEditModalOpen(false)}
+            item={editingItem}
+            onSave={handleSaveEdit}
           />
         )}
         {currentView === "timeline" && (
