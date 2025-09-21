@@ -56,10 +56,606 @@ const categoryColor = (cat) => {
   }
 };
 
+const Home = ({
+  allTrips,
+  onSelectTrip,
+  onDeleteTrip,
+  handleTripSubmit,
+  tripForm,
+  setTripForm,
+}) => {
+  return (
+    <div className="max-w-3xl mx-auto p-6">
+      <div className="mb-8">
+        <TripSetup
+          handleTripSubmit={handleTripSubmit}
+          tripForm={tripForm}
+          setTripForm={setTripForm}
+        />
+      </div>
+      <div>
+        <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+          Your Trips
+        </h2>
+        <div className="bg-white p-6 rounded-lg shadow-travel">
+          {allTrips.length === 0 ? (
+            <p>You have no trips planned yet.</p>
+          ) : (
+            <ul className="space-y-4">
+              {allTrips.map((trip) => (
+                <li
+                  key={trip.id}
+                  className="flex justify-between items-center p-4 border rounded-lg"
+                >
+                  <div>
+                    <p className="font-semibold">{trip.locationOfStay}</p>
+                    <p className="text-sm text-gray-600">
+                      {formatDate(trip.checkInDate)} -{" "}
+                      {formatDate(trip.checkOutDate)}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => onSelectTrip(trip.id)}
+                      className="px-3 py-1 bg-sky-blue text-white rounded hover:bg-medium-slate-blue"
+                    >
+                      Select
+                    </button>
+                    <button
+                      onClick={() => onDeleteTrip(trip.id)}
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Timeline component
+const Timeline = ({ items }) => {
+  const sorted = [...(items || [])].sort((a, b) =>
+    (a.startTime || "").localeCompare(b.startTime || "")
+  );
+  return (
+    <div className="relative pl-6">
+      <div className="absolute left-2 top-0 bottom-0 w-px bg-gray-200" />
+      <div className="space-y-4">
+        {sorted.map((it) => (
+          <div key={it.id} className="relative">
+            <div className="absolute -left-1 top-2 h-3 w-3 rounded-full bg-sky-blue border border-white shadow" />
+            <div className="bg-white rounded-lg border p-3 shadow-travel">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  {it.startTime} – {it.endTime}
+                </div>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded ${categoryColor(
+                    it.category
+                  )}`}
+                >
+                  {it.category}
+                </span>
+              </div>
+              <div className="mt-1 font-semibold">{it.placeName}</div>
+              {it.travelTimeToNext ? (
+                <div className="mt-1 text-xs text-gray-500">
+                  Travel to next: {it.travelTimeToNext} min
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ))}
+        {sorted.length === 0 && (
+          <div className="text-gray-500 text-sm">No items scheduled</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Nav
+const Nav = ({ currentView, setCurrentView }) => (
+  <nav className="bg-sky-blue text-white p-4 shadow-lg">
+    <div className="max-w-6xl mx-auto flex justify-between items-center">
+      <h1 className="text-2xl font-bold">TripPlan</h1>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setCurrentView("home")}
+          className={`px-3 py-2 rounded ${
+            currentView === "home"
+              ? "bg-medium-slate-blue"
+              : "hover:bg-sky-blue/80"
+          }`}
+        >
+          Home
+        </button>
+        <button
+          onClick={() => setCurrentView("places")}
+          className={`px-3 py-2 rounded ${
+            currentView === "places"
+              ? "bg-medium-slate-blue"
+              : "hover:bg-sky-blue/80"
+          }`}
+        >
+          Places
+        </button>
+        <button
+          onClick={() => setCurrentView("planner")}
+          className={`px-3 py-2 rounded ${
+            currentView === "planner"
+              ? "bg-medium-slate-blue"
+              : "hover:bg-sky-blue/80"
+          }`}
+        >
+          Daily Planner
+        </button>
+        <button
+          onClick={() => setCurrentView("timeline")}
+          className={`px-3 py-2 rounded ${
+            currentView === "timeline"
+              ? "bg-medium-slate-blue"
+              : "hover:bg-sky-blue/80"
+          }`}
+        >
+          Timeline
+        </button>
+      </div>
+    </div>
+  </nav>
+);
+
+const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
+  <div className="max-w-3xl mx-auto">
+    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+      Create a New Trip
+    </h2>
+    <form
+      onSubmit={handleTripSubmit}
+      className="space-y-6 bg-white p-6 rounded-lg shadow-travel"
+    >
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Location of Stay
+        </label>
+        <input
+          type="text"
+          required
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          value={tripForm.locationOfStay}
+          onChange={(e) =>
+            setTripForm({ ...tripForm, locationOfStay: e.target.value })
+          }
+          placeholder="Hotel name, City"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Check-in Date
+          </label>
+          <input
+            type="date"
+            required
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            value={tripForm.checkInDate}
+            onChange={(e) =>
+              setTripForm({ ...tripForm, checkInDate: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Check-out Date
+          </label>
+          <input
+            type="date"
+            required
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            value={tripForm.checkOutDate}
+            onChange={(e) =>
+              setTripForm({ ...tripForm, checkOutDate: e.target.value })
+            }
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Travel Mode
+          </label>
+          <select
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            value={tripForm.travelMode}
+            onChange={(e) =>
+              setTripForm({ ...tripForm, travelMode: e.target.value })
+            }
+          >
+            {travelModes.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Number of People
+          </label>
+          <input
+            type="number"
+            min="1"
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            value={tripForm.numberOfPeople}
+            onChange={(e) =>
+              setTripForm({
+                ...tripForm,
+                numberOfPeople: Number(e.target.value),
+              })
+            }
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Budget (₹)
+        </label>
+        <input
+          type="number"
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          value={tripForm.budget}
+          onChange={(e) =>
+            setTripForm({ ...tripForm, budget: e.target.value })
+          }
+          placeholder="50000"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Description
+        </label>
+        <textarea
+          rows={3}
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          value={tripForm.description}
+          onChange={(e) =>
+            setTripForm({ ...tripForm, description: e.target.value })
+          }
+          placeholder="Family vacation, business trip, etc."
+        />
+      </div>
+      <button
+        type="submit"
+        className="w-full bg-lime-green text-white py-3 rounded-lg"
+      >
+        Save Trip Details
+      </button>
+    </form>
+  </div>
+);
+
+const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
+  <div className="max-w-6xl mx-auto p-6">
+    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+      Manage Places
+    </h2>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <form
+        onSubmit={addPlace}
+        className="bg-white p-6 rounded-lg shadow-travel space-y-4"
+      >
+        <h3 className="text-xl font-semibold">Add New Place</h3>
+        <input
+          required
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          placeholder="Place name"
+          value={placeForm.name}
+          onChange={(e) =>
+            setPlaceForm({ ...placeForm, name: e.target.value })
+          }
+        />
+        <select
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          value={placeForm.category}
+          onChange={(e) =>
+            setPlaceForm({ ...placeForm, category: e.target.value })
+          }
+        >
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <input
+          type="number"
+          min="5"
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          placeholder="Duration (minutes)"
+          value={placeForm.estimatedDuration}
+          onChange={(e) =>
+            setPlaceForm({
+              ...placeForm,
+              estimatedDuration: Number(e.target.value),
+            })
+          }
+        />
+        <input
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          placeholder="Address"
+          value={placeForm.address}
+          onChange={(e) =>
+            setPlaceForm({ ...placeForm, address: e.target.value })
+          }
+        />
+        <textarea
+          rows={2}
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          placeholder="Notes"
+          value={placeForm.notes}
+          onChange={(e) =>
+            setPlaceForm({ ...placeForm, notes: e.target.value })
+          }
+        />
+        <button
+          type="submit"
+          className="w-full bg-lime-green text-white py-2 rounded-lg"
+        >
+          Add Place
+        </button>
+      </form>
+
+      <div className="bg-white p-6 rounded-lg shadow-travel">
+        <h3 className="text-xl font-semibold mb-4">
+          Places List ({places.length})
+        </h3>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {places.map((p) => (
+            <div key={p.id} className="p-3 border rounded-lg">
+              <div className="flex justify-between">
+                <div>
+                  <div className="font-semibold">{p.name}</div>
+                  <div className="text-sm text-gray-600">
+                    {p.category} •{" "}
+                    {p.estimated_duration ?? p.estimatedDuration ?? 60} mins
+                  </div>
+                  {p.address ? (
+                    <div className="text-sm text-gray-500">{p.address}</div>
+                  ) : null}
+                </div>
+                <button
+                  onClick={() => removePlace(p.id)}
+                  className="text-red-600"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+          {places.length === 0 && (
+            <div className="text-gray-500 text-sm">No places yet</div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const Planner = ({
+  trip,
+  dayPlans,
+  activeDayId,
+  setActiveDayId,
+  activeDay,
+  addScheduleItem,
+  scheduleForm,
+  setScheduleForm,
+  places,
+  moveItem,
+  removeScheduleItem,
+}) => (
+  <div className="max-w-6xl mx-auto p-6">
+    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+      Daily Planner
+    </h2>
+    {!trip && (
+      <div className="bg-white p-4 rounded border">
+        Create and save a trip first in Trip Setup.
+      </div>
+    )}
+    {trip && (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white p-4 rounded-lg shadow-travel">
+          <h3 className="font-semibold mb-3">Days</h3>
+          <div className="space-y-2">
+            {dayPlans.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setActiveDayId(d.id)}
+                className={`w-full text-left p-2 rounded border ${
+                  activeDayId === d.id
+                    ? "bg-sky-blue text-white"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                {formatDate(d.date)} ({d.items.length})
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-semibold">
+              Schedule for {activeDay ? formatDate(activeDay.date) : "-"}
+            </h3>
+          </div>
+
+          <form
+            onSubmit={addScheduleItem}
+            className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4"
+          >
+            <select
+              required
+              className="p-2 border rounded"
+              value={scheduleForm.placeId}
+              onChange={(e) =>
+                setScheduleForm({ ...scheduleForm, placeId: e.target.value })
+              }
+            >
+              <option value="">Select place</option>
+              {places.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <input
+              required
+              type="time"
+              className="p-2 border rounded"
+              value={scheduleForm.startTime}
+              onChange={(e) =>
+                setScheduleForm({
+                  ...scheduleForm,
+                  startTime: e.target.value,
+                })
+              }
+            />
+            <input
+              required
+              type="time"
+              className="p-2 border rounded"
+              value={scheduleForm.endTime}
+              onChange={(e) =>
+                setScheduleForm({ ...scheduleForm, endTime: e.target.value })
+              }
+            />
+            <input
+              type="number"
+              min="0"
+              className="p-2 border rounded"
+              placeholder="Travel to next (min)"
+              value={scheduleForm.travelTimeToNext}
+              onChange={(e) =>
+                setScheduleForm({
+                  ...scheduleForm,
+                  travelTimeToNext: e.target.value,
+                })
+              }
+            />
+            <button
+              type="submit"
+              className="bg-lime-green text-white rounded px-3 py-2"
+            >
+              Add
+            </button>
+          </form>
+
+          <div className="space-y-2">
+            {(activeDay?.items || [])
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((it) => (
+                <div
+                  key={it.id}
+                  className="flex items-center justify-between p-2 border rounded"
+                >
+                  <div>
+                    <div className="font-medium">{it.placeName}</div>
+                    <div className="text-xs text-gray-600">
+                      {it.startTime}–{it.endTime} • Order {it.order}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => moveItem(it.id, "up")}
+                      className="px-2 py-1 border rounded"
+                    >
+                      Up
+                    </button>
+                    <button
+                      onClick={() => moveItem(it.id, "down")}
+                      className="px-2 py-1 border rounded"
+                    >
+                      Down
+                    </button>
+                    <button
+                      onClick={() => removeScheduleItem(it.id)}
+                      className="px-2 py-1 border rounded text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            {(!activeDay || activeDay.items.length === 0) && (
+              <div className="text-sm text-gray-500">No items yet</div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+const TimelineView = ({
+  trip,
+  dayPlans,
+  activeDayId,
+  setActiveDayId,
+  activeDay,
+}) => (
+  <div className="max-w-6xl mx-auto p-6">
+    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+      Timeline
+    </h2>
+    {!trip && (
+      <div className="bg-white p-4 rounded border">
+        Create and save a trip first in Trip Setup.
+      </div>
+    )}
+    {trip && (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white p-4 rounded-lg shadow-travel">
+          <h3 className="font-semibold mb-3">Days</h3>
+          <div className="space-y-2">
+            {dayPlans.map((d) => (
+              <button
+                key={d.id}
+                onClick={() => setActiveDayId(d.id)}
+                className={`w-full text-left p-2 rounded border ${
+                  activeDayId === d.id
+                    ? "bg-sky-blue text-white"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                {formatDate(d.date)} ({d.items.length})
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
+          <h3 className="font-semibold mb-3">
+            {activeDay ? `Day: ${formatDate(activeDay.date)}` : "—"}
+          </h3>
+          <Timeline items={activeDay?.items || []} />
+        </div>
+      </div>
+    )}
+  </div>
+);
+
 const App = () => {
-  const [currentView, setCurrentView] = useState("setup");
+  const [currentView, setCurrentView] = useState("home");
 
   // Trip
+  const [allTrips, setAllTrips] = useState([]);
   const [trip, setTrip] = useState(null);
   const [tripForm, setTripForm] = useState({
     locationOfStay: "",
@@ -97,22 +693,71 @@ const App = () => {
     travelTimeToNext: "",
   });
 
-  // Load initial places (sample) and keep backend healthy
+  // Load initial data
   useEffect(() => {
-    (async () => {
+    const loadInitialData = async () => {
       try {
-        await placesAPI.getAll().then((r) => setPlaces(r.data));
-      } catch {
-        /* ignore */
+        // Fetch places
+        placesAPI.getAll().then((r) => setPlaces(r.data));
+
+        // Fetch all trips
+        tripAPI.getAll().then((res) => setAllTrips(res.data));
+      } catch (err) {
+        console.error("Error loading initial data:", err);
       }
-    })();
-  }, []);
+    };
+
+    loadInitialData();
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   // Helpers
   const refreshItinerary = async (tripId) => {
     const res = await itineraryAPI.getByTrip(tripId);
     setDayPlans(res.data);
-    if (!activeDayId && res.data.length > 0) setActiveDayId(res.data[0].id);
+    if (res.data.length > 0) {
+      setActiveDayId(res.data[0].id);
+    }
+  };
+
+  const handleSelectTrip = async (tripId) => {
+    const selectedTrip = allTrips.find((t) => t.id === tripId);
+    if (selectedTrip) {
+      setTrip(selectedTrip);
+      setTripForm({
+        locationOfStay: selectedTrip.locationOfStay,
+        checkInDate: selectedTrip.checkInDate.slice(0, 10),
+        checkOutDate: selectedTrip.checkOutDate.slice(0, 10),
+        travelMode: selectedTrip.travelMode,
+        numberOfPeople: selectedTrip.numberOfPeople,
+        budget: selectedTrip.budget,
+        description: selectedTrip.description,
+      });
+      await refreshItinerary(selectedTrip.id);
+      setCurrentView("planner");
+    }
+  };
+
+  const handleDeleteTrip = async (tripId) => {
+    try {
+      await tripAPI.delete(tripId);
+      setAllTrips(allTrips.filter((t) => t.id !== tripId));
+      if (trip && trip.id === tripId) {
+        setTrip(null);
+        setTripForm({
+          locationOfStay: "",
+          checkInDate: "",
+          checkOutDate: "",
+          travelMode: "flight",
+          numberOfPeople: 2,
+          budget: "",
+          description: "",
+        });
+        setDayPlans([]);
+        setActiveDayId(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete trip:", err);
+    }
   };
 
   // Trip setup submit
@@ -120,6 +765,7 @@ const App = () => {
     e.preventDefault();
     const created = await tripAPI.create(tripForm);
     const t = created.data;
+    setAllTrips([...allTrips, t]);
     setTrip(t);
 
     // Scaffold day plans for each date
@@ -200,529 +846,53 @@ const App = () => {
     await refreshItinerary(trip.id);
   };
 
-  // Timeline component
-  const Timeline = ({ items }) => {
-    const sorted = [...(items || [])].sort((a, b) =>
-      (a.startTime || "").localeCompare(b.startTime || "")
-    );
-    return (
-      <div className="relative pl-6">
-        <div className="absolute left-2 top-0 bottom-0 w-px bg-gray-200" />
-        <div className="space-y-4">
-          {sorted.map((it) => (
-            <div key={it.id} className="relative">
-              <div className="absolute -left-1 top-2 h-3 w-3 rounded-full bg-sky-blue border border-white shadow" />
-              <div className="bg-white rounded-lg border p-3 shadow-travel">
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-600">
-                    {it.startTime} – {it.endTime}
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded ${categoryColor(
-                      it.category
-                    )}`}
-                  >
-                    {it.category}
-                  </span>
-                </div>
-                <div className="mt-1 font-semibold">{it.placeName}</div>
-                {it.travelTimeToNext ? (
-                  <div className="mt-1 text-xs text-gray-500">
-                    Travel to next: {it.travelTimeToNext} min
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          ))}
-          {sorted.length === 0 && (
-            <div className="text-gray-500 text-sm">No items scheduled</div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Nav
-  const Nav = () => (
-    <nav className="bg-sky-blue text-white p-4 shadow-lg">
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">TripPlan</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCurrentView("setup")}
-            className={`px-3 py-2 rounded ${
-              currentView === "setup"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
-            }`}
-          >
-            Trip Setup
-          </button>
-          <button
-            onClick={() => setCurrentView("places")}
-            className={`px-3 py-2 rounded ${
-              currentView === "places"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
-            }`}
-          >
-            Places
-          </button>
-          <button
-            onClick={() => setCurrentView("planner")}
-            className={`px-3 py-2 rounded ${
-              currentView === "planner"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
-            }`}
-          >
-            Daily Planner
-          </button>
-          <button
-            onClick={() => setCurrentView("timeline")}
-            className={`px-3 py-2 rounded ${
-              currentView === "timeline"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
-            }`}
-          >
-            Timeline
-          </button>
-        </div>
-      </div>
-    </nav>
-  );
-
-  const TripSetup = () => (
-    <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-        Plan Your Trip
-      </h2>
-      <form
-        onSubmit={handleTripSubmit}
-        className="space-y-6 bg-white p-6 rounded-lg shadow-travel"
-      >
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Location of Stay
-          </label>
-          <input
-            type="text"
-            required
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            value={tripForm.locationOfStay}
-            onChange={(e) =>
-              setTripForm({ ...tripForm, locationOfStay: e.target.value })
-            }
-            placeholder="Hotel name, City"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Check-in Date
-            </label>
-            <input
-              type="date"
-              required
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-              value={tripForm.checkInDate}
-              onChange={(e) =>
-                setTripForm({ ...tripForm, checkInDate: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Check-out Date
-            </label>
-            <input
-              type="date"
-              required
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-              value={tripForm.checkOutDate}
-              onChange={(e) =>
-                setTripForm({ ...tripForm, checkOutDate: e.target.value })
-              }
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Travel Mode
-            </label>
-            <select
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-              value={tripForm.travelMode}
-              onChange={(e) =>
-                setTripForm({ ...tripForm, travelMode: e.target.value })
-              }
-            >
-              {travelModes.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Number of People
-            </label>
-            <input
-              type="number"
-              min="1"
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-              value={tripForm.numberOfPeople}
-              onChange={(e) =>
-                setTripForm({
-                  ...tripForm,
-                  numberOfPeople: Number(e.target.value),
-                })
-              }
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Budget (₹)
-          </label>
-          <input
-            type="number"
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            value={tripForm.budget}
-            onChange={(e) =>
-              setTripForm({ ...tripForm, budget: e.target.value })
-            }
-            placeholder="50000"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <textarea
-            rows={3}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            value={tripForm.description}
-            onChange={(e) =>
-              setTripForm({ ...tripForm, description: e.target.value })
-            }
-            placeholder="Family vacation, business trip, etc."
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-lime-green text-white py-3 rounded-lg"
-        >
-          Save Trip Details
-        </button>
-      </form>
-    </div>
-  );
-
-  const Places = () => (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-        Manage Places
-      </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <form
-          onSubmit={addPlace}
-          className="bg-white p-6 rounded-lg shadow-travel space-y-4"
-        >
-          <h3 className="text-xl font-semibold">Add New Place</h3>
-          <input
-            required
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            placeholder="Place name"
-            value={placeForm.name}
-            onChange={(e) =>
-              setPlaceForm({ ...placeForm, name: e.target.value })
-            }
-          />
-          <select
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            value={placeForm.category}
-            onChange={(e) =>
-              setPlaceForm({ ...placeForm, category: e.target.value })
-            }
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            min="5"
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            placeholder="Duration (minutes)"
-            value={placeForm.estimatedDuration}
-            onChange={(e) =>
-              setPlaceForm({
-                ...placeForm,
-                estimatedDuration: Number(e.target.value),
-              })
-            }
-          />
-          <input
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            placeholder="Address"
-            value={placeForm.address}
-            onChange={(e) =>
-              setPlaceForm({ ...placeForm, address: e.target.value })
-            }
-          />
-          <textarea
-            rows={2}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-            placeholder="Notes"
-            value={placeForm.notes}
-            onChange={(e) =>
-              setPlaceForm({ ...placeForm, notes: e.target.value })
-            }
-          />
-          <button
-            type="submit"
-            className="w-full bg-lime-green text-white py-2 rounded-lg"
-          >
-            Add Place
-          </button>
-        </form>
-
-        <div className="bg-white p-6 rounded-lg shadow-travel">
-          <h3 className="text-xl font-semibold mb-4">
-            Places List ({places.length})
-          </h3>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {places.map((p) => (
-              <div key={p.id} className="p-3 border rounded-lg">
-                <div className="flex justify-between">
-                  <div>
-                    <div className="font-semibold">{p.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {p.category} •{" "}
-                      {p.estimated_duration ?? p.estimatedDuration ?? 60} mins
-                    </div>
-                    {p.address ? (
-                      <div className="text-sm text-gray-500">{p.address}</div>
-                    ) : null}
-                  </div>
-                  <button
-                    onClick={() => removePlace(p.id)}
-                    className="text-red-600"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-            {places.length === 0 && (
-              <div className="text-gray-500 text-sm">No places yet</div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const Planner = () => (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-        Daily Planner
-      </h2>
-      {!trip && (
-        <div className="bg-white p-4 rounded border">
-          Create and save a trip first in Trip Setup.
-        </div>
-      )}
-      {trip && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-4 rounded-lg shadow-travel">
-            <h3 className="font-semibold mb-3">Days</h3>
-            <div className="space-y-2">
-              {dayPlans.map((d) => (
-                <button
-                  key={d.id}
-                  onClick={() => setActiveDayId(d.id)}
-                  className={`w-full text-left p-2 rounded border ${
-                    activeDayId === d.id
-                      ? "bg-sky-blue text-white"
-                      : "hover:bg-gray-50"
-                  }`}
-                >
-                  {formatDate(d.date)} ({d.items.length})
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold">
-                Schedule for {activeDay ? formatDate(activeDay.date) : "-"}
-              </h3>
-            </div>
-
-            <form
-              onSubmit={addScheduleItem}
-              className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4"
-            >
-              <select
-                required
-                className="p-2 border rounded"
-                value={scheduleForm.placeId}
-                onChange={(e) =>
-                  setScheduleForm({ ...scheduleForm, placeId: e.target.value })
-                }
-              >
-                <option value="">Select place</option>
-                {places.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                required
-                type="time"
-                className="p-2 border rounded"
-                value={scheduleForm.startTime}
-                onChange={(e) =>
-                  setScheduleForm({
-                    ...scheduleForm,
-                    startTime: e.target.value,
-                  })
-                }
-              />
-              <input
-                required
-                type="time"
-                className="p-2 border rounded"
-                value={scheduleForm.endTime}
-                onChange={(e) =>
-                  setScheduleForm({ ...scheduleForm, endTime: e.target.value })
-                }
-              />
-              <input
-                type="number"
-                min="0"
-                className="p-2 border rounded"
-                placeholder="Travel to next (min)"
-                value={scheduleForm.travelTimeToNext}
-                onChange={(e) =>
-                  setScheduleForm({
-                    ...scheduleForm,
-                    travelTimeToNext: e.target.value,
-                  })
-                }
-              />
-              <button
-                type="submit"
-                className="bg-lime-green text-white rounded px-3 py-2"
-              >
-                Add
-              </button>
-            </form>
-
-            <div className="space-y-2">
-              {(activeDay?.items || [])
-                .sort((a, b) => (a.order || 0) - (b.order || 0))
-                .map((it) => (
-                  <div
-                    key={it.id}
-                    className="flex items-center justify-between p-2 border rounded"
-                  >
-                    <div>
-                      <div className="font-medium">{it.placeName}</div>
-                      <div className="text-xs text-gray-600">
-                        {it.startTime}–{it.endTime} • Order {it.order}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => moveItem(it.id, "up")}
-                        className="px-2 py-1 border rounded"
-                      >
-                        Up
-                      </button>
-                      <button
-                        onClick={() => moveItem(it.id, "down")}
-                        className="px-2 py-1 border rounded"
-                      >
-                        Down
-                      </button>
-                      <button
-                        onClick={() => removeScheduleItem(it.id)}
-                        className="px-2 py-1 border rounded text-red-600"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              {(!activeDay || activeDay.items.length === 0) && (
-                <div className="text-sm text-gray-500">No items yet</div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const TimelineView = () => (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-        Timeline
-      </h2>
-      {!trip && (
-        <div className="bg-white p-4 rounded border">
-          Create and save a trip first in Trip Setup.
-        </div>
-      )}
-      {trip && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-4 rounded-lg shadow-travel">
-            <h3 className="font-semibold mb-3">Days</h3>
-            <div className="space-y-2">
-              {dayPlans.map((d) => (
-                <button
-                  key={d.id}
-                  onClick={() => setActiveDayId(d.id)}
-                  className={`w-full text-left p-2 rounded border ${
-                    activeDayId === d.id
-                      ? "bg-sky-blue text-white"
-                      : "hover:bg-gray-50"
-                  }`}
-                >
-                  {formatDate(d.date)} ({d.items.length})
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
-            <h3 className="font-semibold mb-3">
-              {activeDay ? `Day: ${formatDate(activeDay.date)}` : "—"}
-            </h3>
-            <Timeline items={activeDay?.items || []} />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-pale-cyan">
-      <Nav />
+      <Nav currentView={currentView} setCurrentView={setCurrentView} />
       <main className="py-8">
-        {currentView === "setup" && <TripSetup />}
-        {currentView === "places" && <Places />}
-        {currentView === "planner" && <Planner />}
-        {currentView === "timeline" && <TimelineView />}
+        {currentView === "home" && (
+          <Home
+            allTrips={allTrips}
+            onSelectTrip={handleSelectTrip}
+            onDeleteTrip={handleDeleteTrip}
+            handleTripSubmit={handleTripSubmit}
+            tripForm={tripForm}
+            setTripForm={setTripForm}
+          />
+        )}
+        {currentView === "places" && (
+          <Places
+            addPlace={addPlace}
+            placeForm={placeForm}
+            setPlaceForm={setPlaceForm}
+            places={places}
+            removePlace={removePlace}
+          />
+        )}
+        {currentView === "planner" && (
+          <Planner
+            trip={trip}
+            dayPlans={dayPlans}
+            activeDayId={activeDayId}
+            setActiveDayId={setActiveDayId}
+            activeDay={activeDay}
+            addScheduleItem={addScheduleItem}
+            scheduleForm={scheduleForm}
+            setScheduleForm={setScheduleForm}
+            places={places}
+            moveItem={moveItem}
+            removeScheduleItem={removeScheduleItem}
+          />
+        )}
+        {currentView === "timeline" && (
+          <TimelineView
+            trip={trip}
+            dayPlans={dayPlans}
+            activeDayId={activeDayId}
+            setActiveDayId={setActiveDayId}
+            activeDay={activeDay}
+          />
+        )}
       </main>
     </div>
   );
