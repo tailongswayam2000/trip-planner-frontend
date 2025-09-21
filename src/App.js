@@ -42,15 +42,15 @@ const formatDate = (iso) => {
 
 const categoryColor = (category) => {
   const colors = {
-    historical: "bg-orange-100 text-orange-800 border border-orange-200",
-    restaurant: "bg-blue-100 text-blue-800 border border-blue-200",
-    shopping: "bg-green-100 text-green-800 border border-green-200",
-    nature: "bg-purple-100 text-purple-800 border border-purple-200",
-    adventure: "bg-pink-100 text-pink-800 border border-pink-200",
-    cultural: "bg-yellow-100 text-yellow-800 border border-yellow-200",
-    entertainment: "bg-teal-100 text-teal-800 border border-teal-200",
+    historical: "bg-gray-200 text-gray-800",
+    restaurant: "bg-blue-100 text-blue-800",
+    shopping: "bg-green-100 text-green-800",
+    nature: "bg-emerald-100 text-emerald-800",
+    adventure: "bg-purple-100 text-purple-800",
+    cultural: "bg-indigo-100 text-indigo-800",
+    entertainment: "bg-pink-100 text-pink-800",
   };
-  return colors[category] || "bg-gray-100 text-gray-800 border border-gray-200";
+  return colors[category] || "bg-gray-100 text-gray-800";
 };
 
 const Home = ({
@@ -71,10 +71,8 @@ const Home = ({
         />
       </div>
       <div>
-        <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-          Your Trips
-        </h2>
-        <div className="bg-white p-6 rounded-lg shadow-travel">
+        <h2 className="text-3xl font-bold text-slate-700 mb-6">Your Trips</h2>
+        <div className="bg-white p-6 rounded-lg shadow-md">
           {allTrips.length === 0 ? (
             <p>You have no trips planned yet.</p>
           ) : (
@@ -82,10 +80,12 @@ const Home = ({
               {allTrips.map((trip) => (
                 <li
                   key={trip.id}
-                  className="flex justify-between items-center p-4 border rounded-lg"
+                  className="flex justify-between items-center p-4 border border-gray-200 rounded-lg shadow-sm"
                 >
                   <div>
-                    <p className="font-semibold">{trip.locationOfStay}</p>
+                    <p className="font-semibold text-gray-800">
+                      {trip.locationOfStay}
+                    </p>
                     <p className="text-sm text-gray-600">
                       {formatDate(trip.checkInDate)} -{" "}
                       {formatDate(trip.checkOutDate)}
@@ -94,13 +94,13 @@ const Home = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => onSelectTrip(trip.id)}
-                      className="px-3 py-1 bg-sky-blue text-white rounded hover:bg-medium-slate-blue"
+                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-150 ease-in-out"
                     >
                       Select
                     </button>
                     <button
                       onClick={() => onDeleteTrip(trip.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition duration-150 ease-in-out"
                     >
                       Delete
                     </button>
@@ -117,6 +117,16 @@ const Home = ({
 
 // Timeline component
 const Timeline = ({ dayPlans }) => {
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -201,7 +211,7 @@ const Nav = ({ currentView, setCurrentView }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-sky-blue text-white p-4 shadow-lg">
+    <nav className="bg-gray-800 text-white p-4 shadow-lg">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <h1 className="text-2xl font-bold">Plan My Trip</h1>
         <div className="md:hidden">
@@ -226,9 +236,7 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("home")}
             className={`px-3 py-2 rounded ${
-              currentView === "home"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
+              currentView === "home" ? "bg-blue-600" : "hover:bg-gray-700"
             }`}
           >
             Home
@@ -236,9 +244,7 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("places")}
             className={`px-3 py-2 rounded ${
-              currentView === "places"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
+              currentView === "places" ? "bg-blue-600" : "hover:bg-gray-700"
             }`}
           >
             Places
@@ -246,9 +252,7 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("planner")}
             className={`px-3 py-2 rounded ${
-              currentView === "planner"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
+              currentView === "planner" ? "bg-blue-600" : "hover:bg-gray-700"
             }`}
           >
             Daily Planner
@@ -256,9 +260,7 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("timeline")}
             className={`px-3 py-2 rounded ${
-              currentView === "timeline"
-                ? "bg-medium-slate-blue"
-                : "hover:bg-sky-blue/80"
+              currentView === "timeline" ? "bg-blue-600" : "hover:bg-gray-700"
             }`}
           >
             Timeline
@@ -273,7 +275,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "home" ? "bg-medium-slate-blue" : ""
+              currentView === "home" ? "bg-blue-600" : ""
             }`}
           >
             Home
@@ -284,7 +286,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "places" ? "bg-medium-slate-blue" : ""
+              currentView === "places" ? "bg-blue-600" : ""
             }`}
           >
             Places
@@ -295,7 +297,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "planner" ? "bg-medium-slate-blue" : ""
+              currentView === "planner" ? "bg-blue-600" : ""
             }`}
           >
             Daily Planner
@@ -306,7 +308,7 @@ const Nav = ({ currentView, setCurrentView }) => {
               setIsMenuOpen(false);
             }}
             className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "timeline" ? "bg-medium-slate-blue" : ""
+              currentView === "timeline" ? "bg-blue-600" : ""
             }`}
           >
             Timeline
@@ -319,12 +321,12 @@ const Nav = ({ currentView, setCurrentView }) => {
 
 const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
   <div className="max-w-3xl mx-auto">
-    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
+    <h2 className="text-3xl font-bold text-slate-700 mb-6">
       Create a New Trip
     </h2>
     <form
       onSubmit={handleTripSubmit}
-      className="space-y-6 bg-white p-6 rounded-lg shadow-travel"
+      className="space-y-6 bg-white p-6 rounded-lg shadow-md"
     >
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -333,7 +335,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
         <input
           type="text"
           required
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           value={tripForm.locationOfStay}
           onChange={(e) =>
             setTripForm({ ...tripForm, locationOfStay: e.target.value })
@@ -349,7 +351,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
           <input
             type="date"
             required
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             value={tripForm.checkInDate}
             onChange={(e) =>
               setTripForm({ ...tripForm, checkInDate: e.target.value })
@@ -363,7 +365,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
           <input
             type="date"
             required
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             value={tripForm.checkOutDate}
             onChange={(e) =>
               setTripForm({ ...tripForm, checkOutDate: e.target.value })
@@ -377,7 +379,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
             Travel Mode
           </label>
           <select
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             value={tripForm.travelMode}
             onChange={(e) =>
               setTripForm({ ...tripForm, travelMode: e.target.value })
@@ -397,7 +399,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
           <input
             type="number"
             min="1"
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             value={tripForm.numberOfPeople}
             onChange={(e) =>
               setTripForm({
@@ -414,7 +416,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
         </label>
         <input
           type="number"
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           value={tripForm.budget}
           onChange={(e) => setTripForm({ ...tripForm, budget: e.target.value })}
           placeholder="50000"
@@ -426,7 +428,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
         </label>
         <textarea
           rows={3}
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           value={tripForm.description}
           onChange={(e) =>
             setTripForm({ ...tripForm, description: e.target.value })
@@ -436,7 +438,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
       </div>
       <button
         type="submit"
-        className="w-full bg-lime-green text-white py-3 rounded-lg"
+        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out"
       >
         Save Trip Details
       </button>
@@ -446,15 +448,13 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
 
 const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
   <div className="max-w-6xl mx-auto p-6">
-    <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-      Manage Places
-    </h2>
+    <h2 className="text-3xl font-bold text-slate-700 mb-6">Manage Places</h2>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <form
         onSubmit={addPlace}
-        className="bg-white p-6 rounded-lg shadow-travel space-y-4"
+        className="bg-white p-6 rounded-lg shadow-md space-y-4"
       >
-        <h3 className="text-xl font-semibold">Add New Place</h3>
+        <h3 className="text-xl font-semibold text-slate-700">Add New Place</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -462,7 +462,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
             </label>
             <input
               required
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Place name"
               value={placeForm.name}
               onChange={(e) =>
@@ -475,7 +475,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
               Category
             </label>
             <select
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               value={placeForm.category}
               onChange={(e) =>
                 setPlaceForm({ ...placeForm, category: e.target.value })
@@ -495,7 +495,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
             <input
               type="number"
               min="5"
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Duration (minutes)"
               value={placeForm.estimatedDuration}
               onChange={(e) =>
@@ -511,7 +511,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
               Address
             </label>
             <input
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Address"
               value={placeForm.address}
               onChange={(e) =>
@@ -526,7 +526,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
           </label>
           <textarea
             rows={2}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             placeholder="Notes"
             value={placeForm.notes}
             onChange={(e) =>
@@ -536,22 +536,25 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
         </div>
         <button
           type="submit"
-          className="w-full bg-lime-green text-white py-2 rounded-lg"
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out"
         >
           Add Place
         </button>
       </form>
 
-      <div className="bg-white p-6 rounded-lg shadow-travel">
-        <h3 className="text-xl font-semibold mb-4">
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold text-slate-700 mb-4">
           Places List ({places.length})
         </h3>
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {places.map((p) => (
-            <div key={p.id} className="p-3 border rounded-lg">
+            <div
+              key={p.id}
+              className="p-3 border border-gray-200 rounded-lg shadow-sm"
+            >
               <div className="flex justify-between">
                 <div>
-                  <div className="font-semibold">{p.name}</div>
+                  <div className="font-semibold text-gray-800">{p.name}</div>
                   <div className="text-sm text-gray-600">
                     {p.category} •{" "}
                     {p.estimated_duration ?? p.estimatedDuration ?? 60} mins
@@ -562,7 +565,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
                 </div>
                 <button
                   onClick={() => removePlace(p.id)}
-                  className="text-red-600"
+                  className="text-red-600 hover:text-red-800 transition duration-150 ease-in-out"
                 >
                   Remove
                 </button>
@@ -596,20 +599,18 @@ const Planner = ({
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-        Daily Planner
-      </h2>
+      <h2 className="text-3xl font-bold text-slate-700 mb-6">Daily Planner</h2>
       {!trip && (
-        <div className="bg-white p-4 rounded border">
+        <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
           Create and save a trip first in Trip Setup.
         </div>
       )}
       {trip && (
         <div>
-          <div className="bg-white p-4 rounded-lg shadow-travel mb-6">
+          <div className="bg-white p-4 rounded-lg shadow-md mb-6">
             <button
               onClick={() => setShowInstructions(!showInstructions)}
-              className="w-full text-left font-semibold text-lg flex justify-between items-center"
+              className="w-full text-left font-semibold text-lg text-slate-700 flex justify-between items-center"
             >
               <span>Instructions</span>
               <span>{showInstructions ? "▲" : "▼"}</span>
@@ -636,17 +637,17 @@ const Planner = ({
             )}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow-travel">
-              <h3 className="font-semibold mb-3">Days</h3>
+            <div className="bg-white p-4 rounded-lg shadow-md">
+              <h3 className="font-semibold text-slate-700 mb-3">Days</h3>
               <div className="grid grid-cols-3 gap-2">
                 {dayPlans.map((d) => (
                   <button
                     key={d.id}
                     onClick={() => setActiveDayId(d.id)}
-                    className={`w-full text-left p-2 rounded border ${
+                    className={`w-full text-left p-2 rounded border border-gray-300 ${
                       activeDayId === d.id
-                        ? "bg-sky-blue text-white"
-                        : "hover:bg-gray-50"
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-gray-100 text-gray-800"
                     }`}
                   >
                     {formatDate(d.date)} ({d.items.length})
@@ -655,9 +656,9 @@ const Planner = ({
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-travel lg:col-span-2">
+            <div className="bg-white p-4 rounded-lg shadow-md lg:col-span-2">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="font-semibold">
+                <h3 className="font-semibold text-slate-700">
                   Schedule for {activeDay ? formatDate(activeDay.date) : "-"}
                 </h3>
               </div>
@@ -670,7 +671,7 @@ const Planner = ({
                     </label>
                     <select
                       required
-                      className="p-2 border rounded w-full"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
                       value={scheduleForm.placeId}
                       onChange={(e) =>
                         setScheduleForm({
@@ -689,12 +690,12 @@ const Planner = ({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Travel to next (min)
+                      Time taken to travel to next destination (min)
                     </label>
                     <input
                       type="number"
                       min="0"
-                      className="p-2 border rounded w-full"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
                       placeholder="Travel to next (min)"
                       value={scheduleForm.travelTimeToNext}
                       onChange={(e) =>
@@ -712,7 +713,7 @@ const Planner = ({
                     <input
                       required
                       type="time"
-                      className="p-2 border rounded w-full"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
                       value={scheduleForm.startTime}
                       onChange={(e) =>
                         setScheduleForm({
@@ -729,7 +730,7 @@ const Planner = ({
                     <input
                       required
                       type="time"
-                      className="p-2 border rounded w-full"
+                      className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-500"
                       value={scheduleForm.endTime}
                       onChange={(e) =>
                         setScheduleForm({
@@ -742,7 +743,7 @@ const Planner = ({
                 </div>
                 <button
                   type="submit"
-                  className="bg-lime-green text-white rounded px-3 py-2 mt-4 w-full"
+                  className="bg-blue-600 text-white rounded px-3 py-2 mt-4 w-full hover:bg-blue-700 transition duration-150 ease-in-out"
                 >
                   Add
                 </button>
@@ -755,7 +756,7 @@ const Planner = ({
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={`space-y-2 p-1 rounded ${
-                        snapshot.isDraggingOver ? "bg-sky-blue/10" : ""
+                        snapshot.isDraggingOver ? "bg-blue-50" : ""
                       }`}
                     >
                       {(activeDay?.items || [])
@@ -778,10 +779,10 @@ const Planner = ({
                                     ? "grabbing"
                                     : "grab",
                                   backgroundColor: snapshot.isDragging
-                                    ? "rgba(123,187,255,0.1)"
+                                    ? "rgba(220,230,250,0.5)"
                                     : "white",
                                 }}
-                                className="flex items-center justify-between p-2 border rounded"
+                                className="flex items-center justify-between p-2 border border-gray-200 rounded shadow-sm"
                               >
                                 <div className="flex items-center gap-2">
                                   {/* Dedicated drag handle */}
@@ -793,7 +794,7 @@ const Planner = ({
                                     |||
                                   </span>
                                   <div>
-                                    <div className="font-medium">
+                                    <div className="font-medium text-gray-800">
                                       {it.placeName}
                                     </div>
                                     <div className="text-xs text-gray-600">
@@ -805,13 +806,13 @@ const Planner = ({
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => onEditClick(it)}
-                                    className="px-2 py-1 border rounded"
+                                    className="px-2 py-1 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out"
                                   >
                                     Edit
                                   </button>
                                   <button
                                     onClick={() => removeScheduleItem(it.id)}
-                                    className="px-2 py-1 border rounded text-red-600"
+                                    className="px-2 py-1 border border-red-300 rounded text-red-600 hover:bg-red-50 transition duration-150 ease-in-out"
                                   >
                                     Remove
                                   </button>
@@ -839,315 +840,104 @@ const Planner = ({
 };
 
 const TimelineView = ({ trip, dayPlans }) => {
-  // Professional PDF Generation Code
-  // Replace your existing handleDownloadPdf function with this
-
-  // Professional PDF Generation Code - Fixed Version
-  // Replace your existing handleDownloadPdf function with this
-
   const handleDownloadPdf = () => {
-    const doc = new jsPDF("p", "mm", "a4");
+    const doc = new jsPDF();
+    let yPos = 15; // Initial Y position
+    const margin = 15; // Left/right margin
+    const lineHeight = 7; // Standard line height
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 25; // Increased margin for better spacing
-    const contentWidth = pageWidth - margin * 2;
-    let yPos = margin;
 
-    // Color palette
-    const colors = {
-      primary: [41, 98, 255], // Blue
-      secondary: [100, 116, 139], // Slate
-      accent: [59, 130, 246], // Light blue
-      text: [15, 23, 42], // Dark slate
-      lightText: [71, 85, 105], // Medium slate
-      background: [248, 250, 252], // Very light slate
-      border: [226, 232, 240], // Light border
-    };
-
-    // Helper functions
-    const addPage = () => {
-      doc.addPage();
-      yPos = margin;
-    };
-
-    const checkPageBreak = (requiredSpace = 20) => {
-      if (yPos + requiredSpace > pageHeight - margin - 10) {
-        // Leave space for footer
-        addPage();
-      }
-    };
-
-    const setColor = (colorArray, type = "text") => {
-      if (type === "text") {
-        doc.setTextColor(colorArray[0], colorArray[1], colorArray[2]);
-      } else if (type === "fill") {
-        doc.setFillColor(colorArray[0], colorArray[1], colorArray[2]);
-      } else if (type === "draw") {
-        doc.setDrawColor(colorArray[0], colorArray[1], colorArray[2]);
-      }
-    };
-
+    // Helper to add text and manage Y position
     const addText = (text, x, y, options = {}) => {
-      // Ensure text stays within margins
-      if (x < margin) x = margin;
-      if (x > pageWidth - margin) x = pageWidth - margin;
       doc.text(text, x, y, options);
+      yPos = y + lineHeight;
     };
 
-    const addRect = (x, y, width, height, style = "F") => {
-      // Ensure rectangles stay within margins
-      if (x < 0) x = 0;
-      if (x + width > pageWidth) width = pageWidth - x;
-      doc.rect(x, y, width, height, style);
+    // Helper to check for page break
+    const checkPageBreak = () => {
+      if (yPos > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPos = margin; // Reset Y position for new page
+      }
     };
 
-    // === COVER PAGE ===
-    // Header background
-    setColor(colors.primary, "fill");
-    addRect(0, 0, pageWidth, 50, "F");
-
-    // Title
-    setColor([255, 255, 255], "text");
-    doc.setFontSize(24);
-    doc.setFont("helvetica", "bold");
-    addText("TRAVEL ITINERARY", margin, 30);
-
-    // Trip destination
-    yPos = 70;
-    setColor(colors.text, "text");
-    doc.setFontSize(28);
+    // --- Trip Overview ---
+    doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
     addText(`Trip to ${trip.locationOfStay}`, margin, yPos);
+    yPos += 5; // Extra space after title
 
-    yPos += 15;
-    doc.setFontSize(16);
+    doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    setColor(colors.lightText, "text");
     addText(
-      `${formatDate(trip.checkInDate)} - ${formatDate(trip.checkOutDate)}`,
-      margin,
-      yPos
-    );
-
-    // Trip details section
-    yPos += 25;
-    setColor(colors.text, "text");
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    addText("Trip Details", margin, yPos);
-
-    yPos += 10;
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    setColor(colors.lightText, "text");
-
-    const duration = Math.ceil(
-      (new Date(trip.checkOutDate) - new Date(trip.checkInDate)) /
-        (1000 * 60 * 60 * 24)
-    );
-
-    addText(`Duration: ${duration} days`, margin, yPos);
-    yPos += 8;
-    addText(`Number of travelers: ${trip.numberOfPeople}`, margin, yPos);
-    yPos += 8;
-    addText(`Travel mode: ${trip.travelMode}`, margin, yPos);
-    yPos += 8;
-    addText(`Budget: ₹${trip.budget.toLocaleString()}`, margin, yPos);
-    yPos += 8;
-    addText(
-      `Total activities: ${dayPlans.reduce(
-        (acc, day) => acc + day.items.length,
-        0
+      `Dates: ${formatDate(trip.checkInDate)} - ${formatDate(
+        trip.checkOutDate
       )}`,
       margin,
       yPos
     );
+    addText(`Travel Mode: ${trip.travelMode}`, margin, yPos);
+    addText(`Number of People: ${trip.numberOfPeople}`, margin, yPos);
+    addText(`Budget: ₹${trip.budget}`, margin, yPos);
+    addText(`Description: ${trip.description}`, margin, yPos);
+    yPos += 10; // Space before timeline
 
-    // Description section
-    if (trip.description) {
-      yPos += 20;
-      setColor(colors.text, "text");
+    // --- Timeline Details ---
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    addText("Detailed Itinerary", margin, yPos);
+    yPos += 5; // Extra space after section title
+
+    dayPlans.forEach((day, dayIndex) => {
+      checkPageBreak();
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      addText("Trip Overview", margin, yPos);
-
-      yPos += 10;
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      setColor(colors.lightText, "text");
-
-      // Word wrap description within margins
-      const lines = doc.splitTextToSize(trip.description, contentWidth);
-      lines.forEach((line) => {
-        addText(line, margin, yPos);
-        yPos += 6;
-      });
-    }
-
-    // === DETAILED ITINERARY ===
-    addPage();
-
-    // Page header
-    setColor(colors.primary, "fill");
-    addRect(0, 0, pageWidth, 35, "F");
-
-    setColor([255, 255, 255], "text");
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    addText("DETAILED ITINERARY", margin, 22);
-
-    yPos = 50;
-
-    // Daily itinerary
-    dayPlans.forEach((day, dayIndex) => {
-      checkPageBreak(40);
-
-      // Day header
-      setColor(colors.accent, "fill");
-      addRect(margin, yPos, contentWidth, 15, "F");
-
-      setColor([255, 255, 255], "text");
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      addText(
-        `Day ${dayIndex + 1}: ${formatDate(day.date)}`,
-        margin + 5,
-        yPos + 10
-      );
-
-      yPos += 25;
+      addText(`\nDay ${dayIndex + 1}: ${formatDate(day.date)}`, margin, yPos);
+      yPos += 3; // Space after day title
 
       if (day.items.length === 0) {
-        setColor(colors.lightText, "text");
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setFont("helvetica", "italic");
-        addText("No activities scheduled for this day", margin + 10, yPos);
-        yPos += 20;
+        addText("No items scheduled for this day.", margin + 5, yPos);
+        yPos += 5; // Space after message
       } else {
-        // Timeline
-        const timelineX = margin + 15;
-        const contentStartX = margin + 35;
-
         day.items
           .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""))
           .forEach((item, itemIndex) => {
-            checkPageBreak(30);
-
-            // Timeline circle with number
-            setColor(colors.primary, "fill");
-            doc.circle(timelineX, yPos + 8, 4, "F");
-
-            // Number in circle - properly centered
-            setColor([255, 255, 255], "text");
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "bold");
-            const numberText = `${itemIndex + 1}`;
-            const numberWidth = doc.getTextWidth(numberText);
-            addText(numberText, timelineX - numberWidth / 2, yPos + 10);
-
-            // Timeline connecting line
-            if (itemIndex < day.items.length - 1) {
-              setColor(colors.border, "draw");
-              doc.setLineWidth(1);
-              doc.line(timelineX, yPos + 12, timelineX, yPos + 35);
-            }
-
-            // Activity content box
-            setColor(colors.background, "fill");
-            addRect(contentStartX, yPos, contentWidth - 20, 20, "F");
-            setColor(colors.border, "draw");
-            doc.setLineWidth(0.5);
-            addRect(contentStartX, yPos, contentWidth - 20, 20, "S");
-
-            // Activity name
-            setColor(colors.text, "text");
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "bold");
-            addText(item.placeName, contentStartX + 5, yPos + 8);
-
-            // Time
-            doc.setFontSize(9);
+            checkPageBreak();
+            doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
-            setColor(colors.lightText, "text");
-            addText(
-              `${item.startTime} - ${item.endTime}`,
-              contentStartX + 5,
-              yPos + 15
-            );
 
-            // Category - simple text
-            const categoryText = `Category: ${item.category}`;
-            const categoryX = contentStartX + contentWidth - 80;
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "normal");
-            setColor(colors.secondary, "text");
-            addText(categoryText, categoryX, yPos + 8);
+            const itemText = `${itemIndex + 1}. ${item.placeName} (${
+              item.startTime
+            } - ${item.endTime})`;
+            addText(itemText, margin + 5, yPos);
 
-            yPos += 25;
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "italic");
+            addText(`   Category: ${item.category}`, margin + 5, yPos);
 
-            // Travel time - clean format
             if (item.travelTimeToNext) {
-              setColor(colors.lightText, "text");
-              doc.setFontSize(9);
-              doc.setFont("helvetica", "italic");
               addText(
-                `Travel time to next location: ${item.travelTimeToNext} minutes`,
-                contentStartX + 5,
+                `   Travel to next: ${item.travelTimeToNext} min`,
+                margin + 5,
                 yPos
               );
-              yPos += 10;
             }
-
-            yPos += 5; // Space between activities
+            yPos += 3; // Space after item details
           });
       }
-
-      yPos += 15; // Space between days
+      yPos += 5; // Space after each day
     });
 
-    // Helper function to add footer to all pages
-    const addFooter = () => {
-      const totalPages = doc.internal.getNumberOfPages();
-
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-
-        // Simple footer line
-        setColor(colors.lightText, "text");
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "normal");
-
-        const footerY = pageHeight - 15;
-        const footerText = `Generated on ${new Date().toLocaleDateString(
-          "en-US",
-          {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          }
-        )} | Trip to ${trip.locationOfStay} | Page ${i} of ${totalPages}`;
-
-        // Center the footer text
-        const footerWidth = doc.getTextWidth(footerText);
-        const footerX = (pageWidth - footerWidth) / 2;
-        addText(footerText, footerX, footerY);
-      }
-    };
-
-    // Add footers to all pages
-    addFooter();
-
-    // Save the document
-    doc.save(`${trip.locationOfStay.replace(/\s+/g, "_")}_Itinerary.pdf`);
+    doc.save(`Trip_to_${trip.locationOfStay}.pdf`);
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-medium-slate-blue mb-6">
-        Full Trip Timeline
-      </h2>
+      {/* <h2 className="text-3xl font-bold text-slate-700 mb-6">Full Trip Timeline</h2> */}
       {!trip && (
-        <div className="bg-white p-4 rounded border">
+        <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
           Create and save a trip first in Trip Setup.
         </div>
       )}
@@ -1155,7 +945,7 @@ const TimelineView = ({ trip, dayPlans }) => {
         <>
           <button
             onClick={handleDownloadPdf}
-            className="mb-6 px-4 py-2 bg-sky-blue text-white rounded-lg hover:bg-medium-slate-blue"
+            className="mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out"
           >
             Download PDF Report
           </button>
@@ -1497,7 +1287,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pale-cyan">
+    <div className="min-h-screen bg-white">
       <Nav currentView={currentView} setCurrentView={setCurrentView} />
       <main className="py-8">
         {currentView === "home" && (
