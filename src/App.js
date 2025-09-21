@@ -160,56 +160,125 @@ const Timeline = ({ items }) => {
   );
 };
 
-// Nav
-const Nav = ({ currentView, setCurrentView }) => (
-  <nav className="bg-sky-blue text-white p-4 shadow-lg">
-    <div className="max-w-6xl mx-auto flex justify-between items-center">
-      <h1 className="text-2xl font-bold">TripPlan</h1>
-      <div className="flex gap-2">
-        <button
-          onClick={() => setCurrentView("home")}
-          className={`px-3 py-2 rounded ${
-            currentView === "home"
-              ? "bg-medium-slate-blue"
-              : "hover:bg-sky-blue/80"
-          }`}
-        >
-          Home
-        </button>
-        <button
-          onClick={() => setCurrentView("places")}
-          className={`px-3 py-2 rounded ${
-            currentView === "places"
-              ? "bg-medium-slate-blue"
-              : "hover:bg-sky-blue/80"
-          }`}
-        >
-          Places
-        </button>
-        <button
-          onClick={() => setCurrentView("planner")}
-          className={`px-3 py-2 rounded ${
-            currentView === "planner"
-              ? "bg-medium-slate-blue"
-              : "hover:bg-sky-blue/80"
-          }`}
-        >
-          Daily Planner
-        </button>
-        <button
-          onClick={() => setCurrentView("timeline")}
-          className={`px-3 py-2 rounded ${
-            currentView === "timeline"
-              ? "bg-medium-slate-blue"
-              : "hover:bg-sky-blue/80"
-          }`}
-        >
-          Timeline
-        </button>
+const Nav = ({ currentView, setCurrentView }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  return (
+    <nav className="bg-sky-blue text-white p-4 shadow-lg">
+      <div className="max-w-6xl mx-auto flex justify-between items-center">
+        <h1 className="text-2xl font-bold">TripPlan</h1>
+        <div className="md:hidden">
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16m-7 6h7"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div className={`hidden md:flex gap-2`}>
+          <button
+            onClick={() => setCurrentView("home")}
+            className={`px-3 py-2 rounded ${
+              currentView === "home"
+                ? "bg-medium-slate-blue"
+                : "hover:bg-sky-blue/80"
+            }`}
+          >
+            Home
+          </button>
+          <button
+            onClick={() => setCurrentView("places")}
+            className={`px-3 py-2 rounded ${
+              currentView === "places"
+                ? "bg-medium-slate-blue"
+                : "hover:bg-sky-blue/80"
+            }`}
+          >
+            Places
+          </button>
+          <button
+            onClick={() => setCurrentView("planner")}
+            className={`px-3 py-2 rounded ${
+              currentView === "planner"
+                ? "bg-medium-slate-blue"
+                : "hover:bg-sky-blue/80"
+            }`}
+          >
+            Daily Planner
+          </button>
+          <button
+            onClick={() => setCurrentView("timeline")}
+            className={`px-3 py-2 rounded ${
+              currentView === "timeline"
+                ? "bg-medium-slate-blue"
+                : "hover:bg-sky-blue/80"
+            }`}
+          >
+            Timeline
+          </button>
+        </div>
       </div>
-    </div>
-  </nav>
-);
+      {isMenuOpen && (
+        <div className="md:hidden mt-4">
+          <button
+            onClick={() => {
+              setCurrentView("home");
+              setIsMenuOpen(false);
+            }}
+            className={`block w-full text-left px-3 py-2 rounded ${
+              currentView === "home" ? "bg-medium-slate-blue" : ""
+            }`}
+          >
+            Home
+          </button>
+          <button
+            onClick={() => {
+              setCurrentView("places");
+              setIsMenuOpen(false);
+            }}
+            className={`block w-full text-left px-3 py-2 rounded ${
+              currentView === "places" ? "bg-medium-slate-blue" : ""
+            }`}
+          >
+            Places
+          </button>
+          <button
+            onClick={() => {
+              setCurrentView("planner");
+              setIsMenuOpen(false);
+            }}
+            className={`block w-full text-left px-3 py-2 rounded ${
+              currentView === "planner" ? "bg-medium-slate-blue" : ""
+            }`}
+          >
+            Daily Planner
+          </button>
+          <button
+            onClick={() => {
+              setCurrentView("timeline");
+              setIsMenuOpen(false);
+            }}
+            className={`block w-full text-left px-3 py-2 rounded ${
+              currentView === "timeline" ? "bg-medium-slate-blue" : ""
+            }`}
+          >
+            Timeline
+          </button>
+        </div>
+      )}
+    </nav>
+  );
+};
 
 const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
   <div className="max-w-3xl mx-auto">
@@ -235,7 +304,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
           placeholder="Hotel name, City"
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Check-in Date
@@ -346,67 +415,70 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
       Manage Places
     </h2>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <form
-        onSubmit={addPlace}
-        className="bg-white p-6 rounded-lg shadow-travel space-y-4"
-      >
+      <form onSubmit={addPlace} className="bg-white p-6 rounded-lg shadow-travel space-y-4">
         <h3 className="text-xl font-semibold">Add New Place</h3>
-        <input
-          required
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-          placeholder="Place name"
-          value={placeForm.name}
-          onChange={(e) =>
-            setPlaceForm({ ...placeForm, name: e.target.value })
-          }
-        />
-        <select
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-          value={placeForm.category}
-          onChange={(e) =>
-            setPlaceForm({ ...placeForm, category: e.target.value })
-          }
-        >
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        <input
-          type="number"
-          min="5"
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-          placeholder="Duration (minutes)"
-          value={placeForm.estimatedDuration}
-          onChange={(e) =>
-            setPlaceForm({
-              ...placeForm,
-              estimatedDuration: Number(e.target.value),
-            })
-          }
-        />
-        <input
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-          placeholder="Address"
-          value={placeForm.address}
-          onChange={(e) =>
-            setPlaceForm({ ...placeForm, address: e.target.value })
-          }
-        />
-        <textarea
-          rows={2}
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
-          placeholder="Notes"
-          value={placeForm.notes}
-          onChange={(e) =>
-            setPlaceForm({ ...placeForm, notes: e.target.value })
-          }
-        />
-        <button
-          type="submit"
-          className="w-full bg-lime-green text-white py-2 rounded-lg"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Place name</label>
+            <input
+              required
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              placeholder="Place name"
+              value={placeForm.name}
+              onChange={(e) => setPlaceForm({ ...placeForm, name: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Category</label>
+            <select
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              value={placeForm.category}
+              onChange={(e) => setPlaceForm({ ...placeForm, category: e.target.value })}
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
+            <input
+              type="number"
+              min="5"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              placeholder="Duration (minutes)"
+              value={placeForm.estimatedDuration}
+              onChange={(e) =>
+                setPlaceForm({
+                  ...placeForm,
+                  estimatedDuration: Number(e.target.value),
+                })
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Address</label>
+            <input
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+              placeholder="Address"
+              value={placeForm.address}
+              onChange={(e) => setPlaceForm({ ...placeForm, address: e.target.value })}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Notes</label>
+          <textarea
+            rows={2}
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sky-blue"
+            placeholder="Notes"
+            value={placeForm.notes}
+            onChange={(e) => setPlaceForm({ ...placeForm, notes: e.target.value })}
+          />
+        </div>
+        <button type="submit" className="w-full bg-lime-green text-white py-2 rounded-lg">
           Add Place
         </button>
       </form>
@@ -497,62 +569,73 @@ const Planner = ({
             </h3>
           </div>
 
-          <form
-            onSubmit={addScheduleItem}
-            className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4"
-          >
-            <select
-              required
-              className="p-2 border rounded"
-              value={scheduleForm.placeId}
-              onChange={(e) =>
-                setScheduleForm({ ...scheduleForm, placeId: e.target.value })
-              }
-            >
-              <option value="">Select place</option>
-              {places.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <input
-              required
-              type="time"
-              className="p-2 border rounded"
-              value={scheduleForm.startTime}
-              onChange={(e) =>
-                setScheduleForm({
-                  ...scheduleForm,
-                  startTime: e.target.value,
-                })
-              }
-            />
-            <input
-              required
-              type="time"
-              className="p-2 border rounded"
-              value={scheduleForm.endTime}
-              onChange={(e) =>
-                setScheduleForm({ ...scheduleForm, endTime: e.target.value })
-              }
-            />
-            <input
-              type="number"
-              min="0"
-              className="p-2 border rounded"
-              placeholder="Travel to next (min)"
-              value={scheduleForm.travelTimeToNext}
-              onChange={(e) =>
-                setScheduleForm({
-                  ...scheduleForm,
-                  travelTimeToNext: e.target.value,
-                })
-              }
-            />
+          <form onSubmit={addScheduleItem} className="mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Select place</label>
+                <select
+                  required
+                  className="p-2 border rounded w-full"
+                  value={scheduleForm.placeId}
+                  onChange={(e) =>
+                    setScheduleForm({ ...scheduleForm, placeId: e.target.value })
+                  }
+                >
+                  <option value="">Select place</option>
+                  {places.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Travel to next (min)</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="p-2 border rounded w-full"
+                  placeholder="Travel to next (min)"
+                  value={scheduleForm.travelTimeToNext}
+                  onChange={(e) =>
+                    setScheduleForm({
+                      ...scheduleForm,
+                      travelTimeToNext: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Start time</label>
+                <input
+                  required
+                  type="time"
+                  className="p-2 border rounded w-full"
+                  value={scheduleForm.startTime}
+                  onChange={(e) =>
+                    setScheduleForm({
+                      ...scheduleForm,
+                      startTime: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">End time</label>
+                <input
+                  required
+                  type="time"
+                  className="p-2 border rounded w-full"
+                  value={scheduleForm.endTime}
+                  onChange={(e) =>
+                    setScheduleForm({ ...scheduleForm, endTime: e.target.value })
+                  }
+                />
+              </div>
+            </div>
             <button
               type="submit"
-              className="bg-lime-green text-white rounded px-3 py-2"
+              className="bg-lime-green text-white rounded px-3 py-2 mt-4 w-full"
             >
               Add
             </button>
