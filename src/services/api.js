@@ -48,4 +48,23 @@ export const healthAPI = {
   check: () => api.get("/health"),
 };
 
+// Payment Users
+export const paymentUsersAPI = {
+  getAll: () => api.get("/payment_users"),
+  getById: (id) => api.get(`/payment_users/${id}`),
+  create: (user) => api.post("/payment_users", user),
+  update: (id, user) => api.put(`/payment_users/${id}`, user),
+  delete: (id) => api.delete(`/payment_users/${id}`),
+};
+
+// Expenses
+export const expensesAPI = {
+  getAll: () => api.get("/expenses"),
+  getByTrip: (tripId) => api.get(`/expenses?tripId=${tripId}`),
+  getById: (id) => api.get(`/expenses/${id}`),
+  create: (expense) => api.post("/expenses", expense),
+  update: (id, expense) => api.put(`/expenses/${id}`, expense),
+  delete: (id) => api.delete(`/expenses/${id}`),
+};
+
 export default api;

@@ -5,6 +5,7 @@ import { tripAPI, placesAPI, itineraryAPI } from "./services/api";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import ExpensesPage from "./ExpensesPage";
 
 const categories = [
   "historical",
@@ -273,6 +274,16 @@ const Nav = ({ currentView, setCurrentView }) => {
           >
             Timeline
           </button>
+          <button
+            onClick={() => setCurrentView("expenses")}
+            className={`px-3 py-2 rounded ${
+              currentView === "expenses"
+                ? "bg-[#7bbbff]"
+                : "hover:bg-[#5c55e1]/80"
+            }`}
+          >
+            Expenses
+          </button>
         </div>
       </div>
       {isMenuOpen && (
@@ -320,6 +331,17 @@ const Nav = ({ currentView, setCurrentView }) => {
             }`}
           >
             Timeline
+          </button>
+          <button
+            onClick={() => {
+              setCurrentView("expenses");
+              setIsMenuOpen(false);
+            }}
+            className={`block w-full text-left px-3 py-2 rounded ${
+              currentView === "expenses" ? "bg-[#7bbbff]" : ""
+            }`}
+          >
+            Expenses
           </button>
         </div>
       )}
@@ -1336,6 +1358,9 @@ const App = () => {
         )}
         {currentView === "timeline" && (
           <TimelineView trip={trip} dayPlans={dayPlans} />
+        )}
+        {currentView === "expenses" && (
+          <ExpensesPage trip={trip} places={places} />
         )}
       </main>
     </div>
