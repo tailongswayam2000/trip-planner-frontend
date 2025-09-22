@@ -212,7 +212,7 @@ const Nav = ({ currentView, setCurrentView }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-[#5c55e1] text-white p-4 shadow-lg">
+    <nav className="bg-[#5c55e1] text-white p-4 shadow-lg sticky top-0 z-50">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <h1 className="text-2xl font-bold">Plan My Trip</h1>
         <div className="md:hidden">

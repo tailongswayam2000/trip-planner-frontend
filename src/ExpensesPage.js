@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { paymentUsersAPI, expensesAPI, placesAPI } from "./services/api";
+import HistoryModal from './HistoryModal';
 import jsPDF from "jspdf";
 import { applyPlugin } from "jspdf-autotable";
 
@@ -171,6 +172,7 @@ const ExpensesPage = ({ trip, places }) => {
   const [expenses, setExpenses] = useState([]);
   const [newUserName, setNewUserName] = useState("");
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   useEffect(() => {
     if (trip) {
@@ -482,6 +484,14 @@ const ExpensesPage = ({ trip, places }) => {
               Add New Expense
             </button>
           )}
+          {trip && (
+            <button
+              onClick={() => setShowHistoryModal(true)}
+              className="ml-4 px-4 py-2 bg-[#7bbbff] text-white rounded-lg hover:bg-[#5c55e1]"
+            >
+              Show History
+            </button>
+          )}
         </div>
 
         {!trip && (
@@ -664,6 +674,12 @@ const ExpensesPage = ({ trip, places }) => {
         places={places}
         onAddExpenseSubmit={handleAddExpenseSubmit}
       />
+      {showHistoryModal && (
+        <HistoryModal
+          isOpen={showHistoryModal}
+          onClose={() => setShowHistoryModal(false)}
+        />
+      )}
     </>
   );
 };

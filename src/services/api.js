@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://192.168.1.6:5000/api";
+  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -65,6 +65,11 @@ export const expensesAPI = {
   create: (expense) => api.post("/expenses", expense),
   update: (id, expense) => api.put(`/expenses/${id}`, expense),
   delete: (id) => api.delete(`/expenses/${id}`),
+};
+
+// Ledger
+export const ledgerAPI = {
+  getAll: () => api.get("/ledger"),
 };
 
 export default api;
