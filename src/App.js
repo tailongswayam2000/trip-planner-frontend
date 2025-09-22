@@ -80,27 +80,27 @@ const Home = ({
             <ul className="space-y-4">
               {allTrips.map((trip) => (
                 <li
-                  key={trip.id}
+                  key={trip._id}
                   className="flex justify-between items-center p-4 border border-gray-200 rounded-lg shadow-sm"
                 >
                   <div>
                     <p className="font-semibold text-gray-800">
-                      {trip.locationOfStay}
+                      {trip.name} ({trip.destination})
                     </p>
                     <p className="text-sm text-gray-600">
-                      {formatDate(trip.checkInDate)} -{" "}
-                      {formatDate(trip.checkOutDate)}
+                      {formatDate(trip.start_date)} -{" "}
+                      {formatDate(trip.end_date)}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => onSelectTrip(trip.id)}
+                      onClick={() => onSelectTrip(trip._id)}
                       className="px-3 py-1 bg-[#7bbbff] text-white rounded hover:bg-[#5c55e1] transition duration-150 ease-in-out"
                     >
                       Select
                     </button>
                     <button
-                      onClick={() => onDeleteTrip(trip.id)}
+                      onClick={() => onDeleteTrip(trip._id)}
                       className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition duration-150 ease-in-out"
                     >
                       Delete
@@ -136,7 +136,7 @@ const Timeline = ({ dayPlans }) => {
         </h1>
 
         {dayPlans.map((day, dayIndex) => (
-          <React.Fragment key={day.id}>
+          <React.Fragment key={day._id}>
             <div className="glass-card mb-8 p-6 sm:p-8 relative">
               <h3 className="text-xl sm:text-2xl font-semibold text-slate-700 mb-6 embossed-text text-center">
                 {formatDate(day.date)}
@@ -149,7 +149,7 @@ const Timeline = ({ dayPlans }) => {
                       (a.startTime || "").localeCompare(b.startTime || "")
                     )
                     .map((item, itemIndex) => (
-                      <div key={item.id} className="relative">
+                      <div key={item._id} className="relative">
                         <div className="flex items-start relative">
                           <div className="timeline-dot z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm sm:text-base shadow-sm">
                             {itemIndex + 1}
@@ -360,82 +360,58 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
     >
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Location of Stay
+          Trip Name
         </label>
         <input
           type="text"
           required
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          value={tripForm.locationOfStay}
+          value={tripForm.name}
+          onChange={(e) => setTripForm({ ...tripForm, name: e.target.value })}
+          placeholder="e.g., Family Vacation to Goa"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Destination
+        </label>
+        <input
+          type="text"
+          required
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          value={tripForm.destination}
           onChange={(e) =>
-            setTripForm({ ...tripForm, locationOfStay: e.target.value })
+            setTripForm({ ...tripForm, destination: e.target.value })
           }
-          placeholder="Hotel name, City"
+          placeholder="e.g., Goa, India"
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Check-in Date
+            Start Date
           </label>
           <input
             type="date"
             required
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={tripForm.checkInDate}
+            value={tripForm.start_date}
             onChange={(e) =>
-              setTripForm({ ...tripForm, checkInDate: e.target.value })
+              setTripForm({ ...tripForm, start_date: e.target.value })
             }
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Check-out Date
+            End Date
           </label>
           <input
             type="date"
             required
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={tripForm.checkOutDate}
+            value={tripForm.end_date}
             onChange={(e) =>
-              setTripForm({ ...tripForm, checkOutDate: e.target.value })
-            }
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Travel Mode
-          </label>
-          <select
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={tripForm.travelMode}
-            onChange={(e) =>
-              setTripForm({ ...tripForm, travelMode: e.target.value })
-            }
-          >
-            {travelModes.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Number of People
-          </label>
-          <input
-            type="number"
-            min="1"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={tripForm.numberOfPeople}
-            onChange={(e) =>
-              setTripForm({
-                ...tripForm,
-                numberOfPeople: Number(e.target.value),
-              })
+              setTripForm({ ...tripForm, end_date: e.target.value })
             }
           />
         </div>
@@ -452,20 +428,6 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
           placeholder="50000"
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Description
-        </label>
-        <textarea
-          rows={3}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          value={tripForm.description}
-          onChange={(e) =>
-            setTripForm({ ...tripForm, description: e.target.value })
-          }
-          placeholder="Family vacation, business trip, etc."
-        />
-      </div>
       <button
         type="submit"
         className="w-full bg-[#9ed454] text-white py-3 rounded-lg hover:bg-[#7cb83e] transition duration-150 ease-in-out"
@@ -476,7 +438,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
   </div>
 );
 
-const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
+const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace, trip }) => (
   <div className="max-w-6xl mx-auto p-6">
     <h2 className="text-3xl font-bold text-slate-700 mb-6">Manage Places</h2>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -579,7 +541,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {places.map((p) => (
             <div
-              key={p.id}
+              key={p._id}
               className="p-3 border border-gray-200 rounded-lg shadow-sm"
             >
               <div className="flex justify-between">
@@ -594,7 +556,7 @@ const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace }) => (
                   ) : null}
                 </div>
                 <button
-                  onClick={() => removePlace(p.id)}
+                  onClick={() => removePlace(p._id)}
                   className="text-red-600 hover:text-red-800 transition duration-150 ease-in-out"
                 >
                   Remove
@@ -672,10 +634,10 @@ const Planner = ({
               <div className="grid grid-cols-3 gap-2">
                 {dayPlans.map((d) => (
                   <button
-                    key={d.id}
-                    onClick={() => setActiveDayId(d.id)}
+                    key={d._id}
+                    onClick={() => setActiveDayId(d._id)}
                     className={`w-full text-left p-2 rounded border border-gray-300 ${
-                      activeDayId === d.id
+                      activeDayId === d._id
                         ? "bg-[#7bbbff] text-white"
                         : "hover:bg-gray-100 text-gray-800"
                     }`}
@@ -712,7 +674,7 @@ const Planner = ({
                     >
                       <option value="">Select place</option>
                       {places.map((p) => (
-                        <option key={p.id} value={p.id}>
+                        <option key={p._id} value={p._id}>
                           {p.name}
                         </option>
                       ))}
@@ -793,8 +755,8 @@ const Planner = ({
                         .sort((a, b) => (a.order || 0) - (b.order || 0))
                         .map((it, index) => (
                           <Draggable
-                            key={it.id}
-                            draggableId={it.id.toString()}
+                            key={it._id}
+                            draggableId={it._id.toString()}
                             index={index}
                           >
                             {(provided, snapshot) => (
@@ -841,7 +803,7 @@ const Planner = ({
                                     Edit
                                   </button>
                                   <button
-                                    onClick={() => removeScheduleItem(it.id)}
+                                    onClick={() => removeScheduleItem(it._id)}
                                     className="px-2 py-1 border border-red-300 rounded text-red-600 hover:bg-red-50 transition duration-150 ease-in-out"
                                   >
                                     Remove
@@ -877,6 +839,7 @@ const TimelineView = ({
     const doc = new jsPDF();
     let yPos = 15; // Initial Y position
     const margin = 15; // Left/right margin
+    const leftMargin = 15; // Define leftMargin here
     const lineHeight = 7; // Standard line height
     // const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -895,19 +858,15 @@ const TimelineView = ({
     };
 
     // --- Trip Overview ---
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    addText(`Trip to ${trip.locationOfStay}`, margin, yPos);
+    addText(`Trip to ${trip.destination}`, margin, yPos);
     yPos += 5; // Extra space after title
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    addText(`Dates: ${formatDate(trip.checkInDate)} - ${formatDate(trip.checkOutDate)}`, margin, yPos);
-    addText(`Travel Mode: ${trip.travelMode}`, margin, yPos);
-    addText(`Number of People: ${trip.numberOfPeople}`, margin, yPos);
-    addText(`Budget: ₹${trip.budget}`, margin, yPos);
-    addText(`Description: ${trip.description}`, margin, yPos);
-    yPos += 10; // Space before timeline
+    addText(`Dates: ${new Date(trip.start_date).toLocaleDateString()} - ${new Date(
+      trip.end_date
+    ).toLocaleDateString()}`, margin, yPos);
+    yPos += 10; // Space before expenses
 
     // --- Timeline Details ---
     doc.setFontSize(18);
@@ -951,7 +910,7 @@ const TimelineView = ({
       yPos += 5; // Space after each day
     });
 
-    doc.save(`Trip_to_${trip.locationOfStay}.pdf`);
+    doc.save(`Trip_to_${trip._id}.pdf`);
   };
 
   return (
@@ -1093,13 +1052,11 @@ const App = () => {
   const [allTrips, setAllTrips] = useState([]);
   const [trip, setTrip] = useState(null);
   const [tripForm, setTripForm] = useState({
-    locationOfStay: "",
-    checkInDate: "",
-    checkOutDate: "",
-    travelMode: "flight",
-    numberOfPeople: 2,
+    name: "",
+    destination: "",
+    start_date: "",
+    end_date: "",
     budget: "",
-    description: "",
   });
 
   // Places
@@ -1116,7 +1073,7 @@ const App = () => {
   const [dayPlans, setDayPlans] = useState([]); // [{id,date,items:[{...}]}]
   const [activeDayId, setActiveDayId] = useState(null);
   const activeDay = useMemo(
-    () => dayPlans.find((d) => d.id === activeDayId) || null,
+    () => dayPlans.find((d) => d._id === activeDayId) || null,
     [dayPlans, activeDayId]
   );
 
@@ -1141,10 +1098,10 @@ const App = () => {
     if (!trip || !activeDayId || !updatedItem) return;
     await itineraryAPI.updatePlaceInDay(
       activeDayId,
-      updatedItem.id,
+      updatedItem._id,
       updatedItem
     );
-    await refreshItinerary(trip.id);
+    await refreshItinerary(trip._id);
     setEditModalOpen(false);
     setEditingItem(null);
   };
@@ -1168,27 +1125,31 @@ const App = () => {
 
   // Helpers
   const refreshItinerary = async (tripId) => {
+    const currentActiveDayId = activeDayId; // Store current activeDayId
     const res = await itineraryAPI.getByTrip(tripId);
+    console.log("Itinerary data received:", res.data);
     setDayPlans(res.data);
     if (res.data.length > 0) {
-      setActiveDayId(res.data[0].id);
+      // Try to restore the previously active day, otherwise default to the first day
+      const foundActiveDay = res.data.find(day => day._id === currentActiveDayId);
+      setActiveDayId(foundActiveDay ? foundActiveDay._id : res.data[0]._id);
+    } else {
+      setActiveDayId(null);
     }
   };
 
   const handleSelectTrip = async (tripId) => {
-    const selectedTrip = allTrips.find((t) => t.id === tripId);
+    const selectedTrip = allTrips.find((t) => t._id === tripId);
     if (selectedTrip) {
       setTrip(selectedTrip);
       setTripForm({
-        locationOfStay: selectedTrip.locationOfStay,
-        checkInDate: selectedTrip.checkInDate.slice(0, 10),
-        checkOutDate: selectedTrip.checkOutDate.slice(0, 10),
-        travelMode: selectedTrip.travelMode,
-        numberOfPeople: selectedTrip.numberOfPeople,
+        name: selectedTrip.name,
+        destination: selectedTrip.destination,
+        start_date: selectedTrip.start_date.slice(0, 10),
+        end_date: selectedTrip.end_date.slice(0, 10),
         budget: selectedTrip.budget,
-        description: selectedTrip.description,
       });
-      await refreshItinerary(selectedTrip.id);
+      await refreshItinerary(selectedTrip._id);
       setCurrentView("planner");
     }
   };
@@ -1196,17 +1157,15 @@ const App = () => {
   const handleDeleteTrip = async (tripId) => {
     try {
       await tripAPI.delete(tripId);
-      setAllTrips(allTrips.filter((t) => t.id !== tripId));
-      if (trip && trip.id === tripId) {
+      setAllTrips(allTrips.filter((t) => t._id !== tripId));
+      if (trip && trip._id === tripId) {
         setTrip(null);
         setTripForm({
-          locationOfStay: "",
-          checkInDate: "",
-          checkOutDate: "",
-          travelMode: "flight",
-          numberOfPeople: 2,
+          name: "",
+          destination: "",
+          start_date: "",
+          end_date: "",
           budget: "",
-          description: "",
         });
         setDayPlans([]);
         setActiveDayId(null);
@@ -1219,24 +1178,33 @@ const App = () => {
   // Trip setup submit
   const handleTripSubmit = async (e) => {
     e.preventDefault();
+    if (!tripForm.name || !tripForm.destination || !tripForm.start_date || !tripForm.end_date) {
+      alert("Please fill in all required trip details (Name, Destination, Start Date, End Date).");
+      return;
+    }
+    console.log("Sending tripForm:", tripForm);
     const created = await tripAPI.create(tripForm);
     const t = created.data;
     setAllTrips([...allTrips, t]);
     setTrip(t);
 
     // Scaffold day plans for each date
-    const days = getDateRange(tripForm.checkInDate, tripForm.checkOutDate);
+    const days = getDateRange(tripForm.start_date, tripForm.end_date);
     await Promise.all(
-      days.map((date) => itineraryAPI.createDayPlan({ tripId: t.id, date }))
+      days.map((date) => itineraryAPI.createDayPlan({ tripId: t._id, date }))
     );
-    await refreshItinerary(t.id);
+    await refreshItinerary(t._id);
     setCurrentView("planner");
   };
 
   // Places create/delete
   const addPlace = async (e) => {
     e.preventDefault();
-    const res = await placesAPI.create(placeForm);
+    if (!trip) {
+      alert("Please select a trip first.");
+      return;
+    }
+    const res = await placesAPI.create({ ...placeForm, trip_id: trip._id });
     setPlaces((p) => [res.data, ...p]);
     setPlaceForm({
       name: "",
@@ -1248,25 +1216,30 @@ const App = () => {
   };
   const removePlace = async (id) => {
     await placesAPI.delete(id);
-    setPlaces((p) => p.filter((x) => x.id !== id));
+    setPlaces((p) => p.filter((x) => x._id !== id));
   };
 
   // Add schedule item
   const addScheduleItem = async (e) => {
     e.preventDefault();
-    if (!trip || !activeDayId) return;
-    const day = dayPlans.find((d) => d.id === activeDayId);
+    if (!trip || !activeDayId) {
+      console.log("Cannot add schedule item: trip or activeDayId is missing.", { trip, activeDayId });
+      return;
+    }
+    const day = dayPlans.find((d) => d._id === activeDayId);
     const nextOrder = (day?.items?.length || 0) + 1;
-    await itineraryAPI.addPlaceToDay(activeDayId, {
-      placeId: Number(scheduleForm.placeId),
+    const dataToSend = {
+      placeId: scheduleForm.placeId,
       startTime: scheduleForm.startTime,
       endTime: scheduleForm.endTime,
       order: nextOrder,
       travelTimeToNext: scheduleForm.travelTimeToNext
         ? Number(scheduleForm.travelTimeToNext)
         : null,
-    });
-    await refreshItinerary(trip.id);
+    };
+    console.log("Adding schedule item with data:", dataToSend);
+    await itineraryAPI.addPlaceToDay(activeDayId, dataToSend);
+    await refreshItinerary(trip._id);
     setScheduleForm({
       placeId: "",
       startTime: "09:00",
@@ -1279,7 +1252,7 @@ const App = () => {
   const removeScheduleItem = async (itemId) => {
     if (!trip || !activeDayId) return;
     await itineraryAPI.removePlaceFromDay(activeDayId, itemId);
-    await refreshItinerary(trip.id);
+    await refreshItinerary(trip._id);
   };
 
   // Reorder items with drag and drop
@@ -1287,7 +1260,7 @@ const App = () => {
     if (!result.destination) return;
     if (!trip || !activeDayId) return;
 
-    const day = dayPlans.find((d) => d.id === activeDayId);
+    const day = dayPlans.find((d) => d._id === activeDayId);
     const items = Array.from(day.items);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
@@ -1298,15 +1271,15 @@ const App = () => {
     }));
 
     const updatedDayPlans = dayPlans.map((d) =>
-      d.id === activeDayId ? { ...d, items: updatedItems } : d
+      d._id === activeDayId ? { ...d, items: updatedItems } : d
     );
     setDayPlans(updatedDayPlans);
 
     await itineraryAPI.reorderPlaces(
       activeDayId,
-      updatedItems.map((i) => ({ id: i.id, order: i.order }))
+      updatedItems.map((i) => ({ id: i._id, order: i.order }))
     );
-    await refreshItinerary(trip.id);
+    await refreshItinerary(trip._id);
   };
 
   return (
@@ -1330,6 +1303,7 @@ const App = () => {
             setPlaceForm={setPlaceForm}
             places={places}
             removePlace={removePlace}
+            trip={trip}
           />
         )}
         {currentView === "planner" && (

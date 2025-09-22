@@ -6,6 +6,12 @@ import { applyPlugin } from "jspdf-autotable";
 
 applyPlugin(jsPDF);
 
+const toLocalISOString = (date) => {
+  const local = new Date(date);
+  local.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return local.toISOString().slice(0, 16);
+};
+
 const AddExpenseModal = ({
   isOpen,
   onClose,
@@ -20,20 +26,25 @@ const AddExpenseModal = ({
     description: "",
     modeOfPayment: "UPI",
     placeId: "",
-    paymentTime: new Date().toISOString().slice(0, 16), // YYYY-MM-DDTHH:MM
+    paymentTime: toLocalISOString(new Date()), // YYYY-MM-DDTHH:MM
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setExpenseForm({
+        amount: "",
+        paymentUserId: "",
+        description: "",
+        modeOfPayment: "UPI",
+        placeId: "",
+        paymentTime: toLocalISOString(new Date()),
+      });
+    }
+  }, [isOpen]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     await onAddExpenseSubmit(expenseForm);
-    setExpenseForm({
-      amount: "",
-      paymentUserId: "",
-      description: "",
-      modeOfPayment: "UPI",
-      placeId: "",
-      paymentTime: new Date().toISOString().slice(0, 16),
-    });
     onClose();
   };
 
@@ -84,7 +95,7 @@ const AddExpenseModal = ({
             >
               <option value="">Select Payer</option>
               {paymentUsers.map((user) => (
-                <option key={user.id} value={user.id}>
+                <option key={user._id} value={user._id}>
                   {user.name}
                 </option>
               ))}
@@ -135,7 +146,7 @@ const AddExpenseModal = ({
             >
               <option value="">None</option>
               {places.map((place) => (
-                <option key={place.id} value={place.id}>
+                <option key={place._id} value={place._id}>
                   {place.name}
                 </option>
               ))}
@@ -176,7 +187,7 @@ const ExpensesPage = ({ trip, places }) => {
   useEffect(() => {
     if (trip) {
       fetchPaymentUsers();
-      fetchExpenses(trip.id);
+      fetchExpenses(trip._id);
     }
   }, [trip]);
 
@@ -192,6 +203,7 @@ const ExpensesPage = ({ trip, places }) => {
   const fetchExpenses = async (tripId) => {
     try {
       const response = await expensesAPI.getByTrip(tripId);
+      console.log("Fetched expenses data:", response.data);
       setExpenses(response.data);
     } catch (error) {
       console.error("Error fetching expenses:", error);
@@ -201,8 +213,12 @@ const ExpensesPage = ({ trip, places }) => {
   const handleAddUser = async (e) => {
     e.preventDefault();
     if (!newUserName.trim()) return;
+    if (!trip) {
+      alert("Please select a trip before adding a user.");
+      return;
+    }
     try {
-      await paymentUsersAPI.create({ name: newUserName });
+      await paymentUsersAPI.create({ name: newUserName, trip_id: trip._id });
       setNewUserName("");
       fetchPaymentUsers();
     } catch (error) {
@@ -212,6 +228,7 @@ const ExpensesPage = ({ trip, places }) => {
   };
 
   const handleDeleteUser = async (userId) => {
+    console.log("Attempting to delete user with ID:", userId);
     if (
       !window.confirm(
         "Are you sure you want to delete this user? This will set their associated expenses to NULL."
@@ -219,9 +236,12 @@ const ExpensesPage = ({ trip, places }) => {
     )
       return;
     try {
+      console.log("Calling paymentUsersAPI.delete for user ID:", userId);
       await paymentUsersAPI.delete(userId);
+      console.log("User deleted successfully on backend.");
       fetchPaymentUsers();
-      fetchExpenses(trip.id); // Refresh expenses as user might be linked
+      fetchExpenses(trip._id); // Refresh expenses as user might be linked
+      console.log("Frontend state refreshed after user deletion.");
     } catch (error) {
       console.error("Error deleting user:", error);
       alert(error.response?.data?.error || "Failed to delete user");
@@ -233,10 +253,10 @@ const ExpensesPage = ({ trip, places }) => {
     try {
       await expensesAPI.create({
         ...expenseFormData,
-        tripId: trip.id,
+        tripId: trip._id,
         amount: parseFloat(expenseFormData.amount),
       });
-      fetchExpenses(trip.id);
+      fetchExpenses(trip._id);
     } catch (error) {
       console.error("Error adding expense:", error);
       alert(error.response?.data?.error || "Failed to add expense");
@@ -248,7 +268,7 @@ const ExpensesPage = ({ trip, places }) => {
       return;
     try {
       await expensesAPI.delete(expenseId);
-      fetchExpenses(trip.id);
+      fetchExpenses(trip._id);
     } catch (error) {
       console.error("Error deleting expense:", error);
       alert(error.response?.data?.error || "Failed to delete expense");
@@ -257,7 +277,7 @@ const ExpensesPage = ({ trip, places }) => {
 
   // Group expenses by date
   const groupedExpenses = expenses.reduce((acc, expense) => {
-    const date = expense.paymentTime.slice(0, 10);
+    const date = expense.payment_time ? expense.payment_time.slice(0, 10) : 'N/A';
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -273,13 +293,13 @@ const ExpensesPage = ({ trip, places }) => {
 
   // Calculate user-wise total payments
   const userWisePayments = paymentUsers.reduce((acc, user) => {
-    acc[user.id] = { name: user.name, total: 0 };
+    acc[user._id] = { name: user.name, total: 0 };
     return acc;
   }, {});
 
   expenses.forEach((expense) => {
-    if (expense.paymentUserId && userWisePayments[expense.paymentUserId]) {
-      userWisePayments[expense.paymentUserId].total += expense.amount;
+    if (expense.paid_by && userWisePayments[expense.paid_by._id]) {
+      userWisePayments[expense.paid_by._id].total += expense.amount;
     }
   });
 
@@ -313,14 +333,14 @@ const ExpensesPage = ({ trip, places }) => {
     // --- Expense Report Title ---
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
-    addText(`Expense Report for ${trip.locationOfStay}`, leftMargin, yPos);
+    addText(`Expense Report for ${trip.destination}`, leftMargin, yPos);
     yPos += 5; // Extra space after title
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     addText(
-      `Dates: ${new Date(trip.checkInDate).toLocaleDateString()} - ${new Date(
-        trip.checkOutDate
+      `Dates: ${new Date(trip.start_date).toLocaleDateString()} - ${new Date(
+        trip.end_date
       ).toLocaleDateString()}`,
       leftMargin,
       yPos
@@ -371,16 +391,16 @@ const ExpensesPage = ({ trip, places }) => {
           doc.setFont("times", "normal");
           const descriptionLine = `${
             expense.description || "No description"
-          } (Paid by: ${expense.paymentUserName || "N/A"}, Mode: ${
+          } (Paid by: ${expense.paymentUserName ? expense.paymentUserName : "N/A"}, Mode: ${
             expense.modeOfPayment
-          })`;
+          })`;;
           addText(descriptionLine, leftMargin, yPos);
 
           // Line 3: Time
           doc.setFontSize(10);
           doc.setFont("times", "italic");
           addText(
-            `Time: ${new Date(expense.paymentTime).toLocaleTimeString("en-US", {
+            `Time: ${new Date(expense.payment_time).toLocaleTimeString(undefined, {
               hour: "2-digit",
               minute: "2-digit",
             })}`,
@@ -484,7 +504,7 @@ const ExpensesPage = ({ trip, places }) => {
       );
     }
 
-    doc.save(`Expense_Report_${trip.locationOfStay}.pdf`);
+    doc.save(`Expense_Report_${trip.destination}.pdf`);
   };
 
   return (
@@ -555,12 +575,12 @@ const ExpensesPage = ({ trip, places }) => {
                     <ul className="space-y-2">
                       {paymentUsers.map((user) => (
                         <li
-                          key={user.id}
+                          key={user._id}
                           className="flex justify-between items-center bg-gray-50 p-2 rounded-md"
                         >
                           <span>{user.name}</span>
                           <button
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() => handleDeleteUser(user._id)}
                             className="text-red-500 hover:text-red-700 text-sm"
                           >
                             Delete
@@ -638,7 +658,7 @@ const ExpensesPage = ({ trip, places }) => {
                         <ul className="space-y-3">
                           {groupedExpenses[date].map((expense) => (
                             <li
-                              key={expense.id}
+                              key={expense._id}
                               className="bg-gray-50 p-3 rounded-md flex justify-between items-center"
                             >
                               <div>
@@ -656,16 +676,16 @@ const ExpensesPage = ({ trip, places }) => {
                                   </p>
                                 )}
                                 <p className="text-xs text-gray-500">
-                                  {new Date(
-                                    expense.paymentTime
-                                  ).toLocaleTimeString("en-US", {
+                                  {expense.payment_time ? new Date(
+                                    expense.payment_time
+                                  ).toLocaleTimeString(undefined, {
                                     hour: "2-digit",
                                     minute: "2-digit",
-                                  })}
+                                  }) : 'N/A'}
                                 </p>
                               </div>
                               <button
-                                onClick={() => handleDeleteExpense(expense.id)}
+                                onClick={() => handleDeleteExpense(expense._id)}
                                 className="text-red-500 hover:text-red-700 text-sm"
                               >
                                 Delete

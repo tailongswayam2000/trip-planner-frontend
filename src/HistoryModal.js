@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+import { ledgerAPI } from './services/api';
 
 const HistoryModal = ({ isOpen, onClose }) => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
@@ -13,7 +11,8 @@ const HistoryModal = ({ isOpen, onClose }) => {
       const fetchLedgerEntries = async () => {
         try {
           setLoading(true);
-          const response = await axios.get(`${API_BASE_URL}/ledger`);
+          const response = await ledgerAPI.getAll();
+          console.log("Ledger entries received:", response.data);
           setLedgerEntries(response.data);
         } catch (err) {
           console.error("Error fetching ledger entries:", err);
@@ -49,7 +48,7 @@ const HistoryModal = ({ isOpen, onClose }) => {
           {!loading && ledgerEntries.length > 0 && (
             <ul className="space-y-3">
               {ledgerEntries.map((entry) => (
-                <li key={entry.id} className="bg-gray-50 p-3 rounded-md text-sm">
+                <li key={entry._id} className="bg-gray-50 p-3 rounded-md text-sm">
                   <p className="font-semibold text-gray-700">
                     {new Date(entry.timestamp).toLocaleString()}
                   </p>
