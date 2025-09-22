@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { paymentUsersAPI, expensesAPI } from "./services/api";
 import HistoryModal from "./HistoryModal";
 import jsPDF from "jspdf";
-import { applyPlugin } from "jspdf-autotable";
-
-applyPlugin(jsPDF);
+import autoTable from "jspdf-autotable";
 
 const toLocalISOString = (date) => {
   const local = new Date(date);
@@ -65,7 +63,7 @@ const AddExpenseModal = ({
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Amount (₹)
+              Amount (Rs.)
             </label>
             <input
               type="number"
@@ -277,7 +275,9 @@ const ExpensesPage = ({ trip, places }) => {
 
   // Group expenses by date
   const groupedExpenses = expenses.reduce((acc, expense) => {
-    const date = expense.payment_time ? expense.payment_time.slice(0, 10) : 'N/A';
+    const date = expense.payment_time
+      ? expense.payment_time.slice(0, 10)
+      : "N/A";
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -307,125 +307,136 @@ const ExpensesPage = ({ trip, places }) => {
     if (!trip) return;
 
     const doc = new jsPDF();
-    let yPos = 15; // Initial Y position
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
     const leftMargin = 15;
     const rightMargin = 15;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const textWidth = pageWidth - leftMargin - rightMargin;
-    const lineHeight = 7; // Standard line height
+    const contentWidth = pageWidth - leftMargin - rightMargin;
+    let yPos = 0; // Start from top for header
 
-    // Helper to add text and manage Y position with max width
-    const addText = (text, x, y, options = {}) => {
-      doc.text(text, x, y, { maxWidth: textWidth, ...options });
-      const textLines = doc.splitTextToSize(text, textWidth);
-      yPos = y + textLines.length * lineHeight;
+    const addHeader = (pageNumber) => {
+      doc.setFillColor(41, 128, 185); // Blue color
+      doc.rect(0, 0, pageWidth, 40, "F"); // Blue background rectangle for header
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255); // White text
+      doc.text(`Expense Report for ${trip.destination}`, pageWidth / 2, 15, {
+        align: "center",
+      });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(255, 255, 255); // White text
+      doc.text(
+        `Dates: ${new Date(trip.start_date).toLocaleDateString()} - ${new Date(
+          trip.end_date
+        ).toLocaleDateString()}`,
+        leftMargin,
+        25
+      );
+      doc.getFontSize(32);
+      doc.text(
+        `Total Expenses: Rs.${totalExpenses.toFixed(2)}/-`,
+        leftMargin,
+        32
+      );
+      yPos = 55; // Set yPos after header
     };
 
-    // Helper to check for page break
-    const checkPageBreak = () => {
-      if (yPos > doc.internal.pageSize.getHeight() - 30) {
-        // Reduced margin for footer
-        doc.addPage();
-        yPos = leftMargin; // Reset Y position for new page
-      }
-    };
+    // Add header to the first page
+    addHeader(1);
 
-    // --- Expense Report Title ---
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    addText(`Expense Report for ${trip.destination}`, leftMargin, yPos);
-    yPos += 5; // Extra space after title
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    addText(
-      `Dates: ${new Date(trip.start_date).toLocaleDateString()} - ${new Date(
-        trip.end_date
-      ).toLocaleDateString()}`,
-      leftMargin,
-      yPos
-    );
-    addText(`Total Expenses: ₹${totalExpenses.toFixed(2)}`, leftMargin, yPos);
-    yPos += 10; // Space before sections
-
-    // --- Payment Timeline ---
-    checkPageBreak();
+    // Payment Timeline
     doc.setFontSize(18);
-    doc.setFont("times", "bold");
-    addText("Payment Timeline", leftMargin, yPos);
-    yPos += 5; // Extra space after section title
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(0, 0, 0); // Black text for content
+    doc.text("Payment Timeline", leftMargin, yPos);
+    yPos += 10;
 
     if (sortedDates.length === 0) {
       doc.setFontSize(10);
-      doc.setFont("times", "italic");
-      addText("No expenses recorded for this trip yet.", leftMargin + 5, yPos);
-      yPos += 5; // Space after message
+      doc.setFont("helvetica", "italic");
+      doc.text("No expenses recorded for this trip yet.", leftMargin, yPos);
+      yPos += 10;
     } else {
       sortedDates.forEach((date) => {
-        checkPageBreak();
+        // Check if enough space for date header + at least one row
+        if (yPos + 20 > pageHeight - 30) {
+          // 20 for date header, 30 for footer
+          doc.addPage();
+          addHeader(doc.internal.getNumberOfPages());
+        }
+
         doc.setFontSize(14);
-        doc.setFont("times", "bold");
-        addText(
-          `${new Date(date).toLocaleDateString("en-US", {
+        doc.setFont("helvetica", "bold");
+        doc.text(
+          new Date(date).toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
             month: "long",
             day: "numeric",
-          })}`,
+          }),
           leftMargin,
           yPos
         );
-        yPos += 3; // Space after day title
+        yPos += 7;
 
-        groupedExpenses[date].forEach((expense) => {
-          checkPageBreak();
-          // const startYForEntry = yPos; // Store starting Y for this entry
+        const timelineData = groupedExpenses[date].map((expense) => [
+          `Rs.${expense.amount.toFixed(2)}`,
+          expense.description || "No description",
+          expense.paymentUserName || "N/A",
+          expense.modeOfPayment,
+          new Date(expense.payment_time).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          expense.placeName || "N/A",
+        ]);
 
-          // Line 1: Amount (bold)
-          doc.setFontSize(12);
-          doc.setFont("times", "bold");
-          addText(`₹${expense.amount.toFixed(2)}`, leftMargin, yPos);
-
-          // Line 2: Description, Paid By, Mode
-          doc.setFontSize(12);
-          doc.setFont("times", "normal");
-          const descriptionLine = `${
-            expense.description || "No description"
-          } (Paid by: ${expense.paymentUserName ? expense.paymentUserName : "N/A"}, Mode: ${
-            expense.modeOfPayment
-          })`;;
-          addText(descriptionLine, leftMargin, yPos);
-
-          // Line 3: Time
-          doc.setFontSize(10);
-          doc.setFont("times", "italic");
-          addText(
-            `Time: ${new Date(expense.payment_time).toLocaleTimeString(undefined, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}`,
-            leftMargin,
-            yPos
-          );
-
-          // Line 4: Linked Place (Conditional)
-          if (expense.placeName) {
-            doc.setFontSize(10);
-            doc.setFont("times", "italic");
-            addText(`Linked to: ${expense.placeName}`, leftMargin, yPos);
-          }
-          yPos += 5; // Add a small vertical space after each complete expense entry
+        autoTable(doc, {
+          startY: yPos,
+          head: [["Amount", "Description", "Paid By", "Mode", "Time", "Place"]],
+          body: timelineData,
+          theme: "striped",
+          headStyles: { fillColor: [41, 128, 185] },
+          margin: { left: leftMargin, right: rightMargin },
+          didDrawPage: (data) => {
+            // Only draw header on subsequent pages
+            if (data.pageNumber > 1) {
+              addHeader(data.pageNumber);
+            }
+            // Footer
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(150, 150, 150); // Gray color
+            doc.text(
+              `Generated: ${new Date().toLocaleString()} | Page ${
+                data.pageNumber
+              } of ${doc.internal.getNumberOfPages()}`,
+              pageWidth / 2,
+              pageHeight - 10,
+              { align: "center" }
+            );
+          },
         });
-        yPos += 5; // Space after each day
+
+        yPos = doc.lastAutoTable.finalY + 10;
       });
     }
 
-    // --- User-wise Payment Report (Manual Table) ---
-    checkPageBreak();
+    // User-wise Payment Report
+    // Check if enough space for section title + table
+    if (yPos + 30 > pageHeight - 30) {
+      // 30 for title, 30 for footer
+      doc.addPage();
+      addHeader(doc.internal.getNumberOfPages());
+    }
+
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    addText("User-wise Payment Report", leftMargin, yPos);
-    yPos += 5; // Extra space after section title
+    doc.setTextColor(0, 0, 0); // Black text for content
+    doc.text("User-wise Payment Report", leftMargin, yPos);
+    yPos += 10;
 
     const usersWithPayments = Object.values(userWisePayments).filter(
       (user) => user.total > 0
@@ -434,74 +445,40 @@ const ExpensesPage = ({ trip, places }) => {
     if (usersWithPayments.length === 0) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "italic");
-      addText("No user payments recorded yet.", leftMargin + 5, yPos);
-      yPos += 5; // Space after message
+      doc.text("No user payments recorded yet.", leftMargin, yPos);
     } else {
-      const colWidth = textWidth / 2; // Divide available width for two columns
-      // const tableStartY = yPos;
+      const finalBody = usersWithPayments.map((user) => [
+        user.name,
+        user.total.toFixed(2),
+      ]);
+      finalBody.push(["Overall Total", totalExpenses.toFixed(2)]);
 
-      // Table Headers
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setFillColor(92, 85, 225); // Tailwind bg-[#5c55e1]
-      doc.setTextColor(255, 255, 255);
-      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, "F"); // Draw filled rectangle for header
-      doc.text("Payer Name", leftMargin + 2, yPos + lineHeight);
-      doc.text(
-        "Total Amount (₹)",
-        leftMargin + colWidth + 2,
-        yPos + lineHeight
-      );
-      yPos += lineHeight + 2; // Move yPos past header
-
-      // Table Rows
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(0, 0, 0); // Reset text color
-      usersWithPayments.forEach((user, index) => {
-        checkPageBreak();
-        const rowY = yPos;
-        doc.rect(leftMargin, rowY, textWidth, lineHeight + 2, "S"); // Draw border for row
-        doc.text(user.name, leftMargin + 2, rowY + lineHeight);
-        doc.text(
-          user.total.toFixed(2),
-          leftMargin + colWidth + 2,
-          rowY + lineHeight
-        );
-        yPos += lineHeight + 2;
+      autoTable(doc, {
+        startY: yPos,
+        head: [["Payer Name", "Total Amount (Rs.)"]],
+        body: finalBody,
+        theme: "grid",
+        headStyles: { fillColor: [41, 128, 185] },
+        margin: { left: leftMargin, right: rightMargin },
+        didDrawPage: (data) => {
+          // Only draw header on subsequent pages
+          if (data.pageNumber > 1) {
+            addHeader(data.pageNumber);
+          }
+          // Footer
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(150, 150, 150); // Gray color
+          doc.text(
+            `Generated: ${new Date().toLocaleString()} | Page ${
+              data.pageNumber
+            } of ${doc.internal.getNumberOfPages()}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            { align: "center" }
+          );
+        },
       });
-
-      // Total Row for User-wise Payments
-      checkPageBreak();
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setFillColor(240, 240, 240); // Light gray background
-      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, "F"); // Fill first
-      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, "S"); // Then stroke
-      doc.text("Overall Total", leftMargin + 2, yPos + lineHeight);
-      doc.text(
-        totalExpenses.toFixed(2),
-        leftMargin + colWidth + 2,
-        yPos + lineHeight
-      );
-      yPos += lineHeight + 2;
-    }
-
-    // --- PDF Footer ---
-    const pageCount = doc.internal.numberOfPages;
-    const generationDateTime = new Date().toLocaleString();
-
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(150, 150, 150); // Gray color
-      doc.text(
-        `Generated: ${generationDateTime} | Page ${i} of ${pageCount}`,
-        pageWidth / 2,
-        doc.internal.pageSize.getHeight() - 10,
-        { align: "center" }
-      );
     }
 
     doc.save(`Expense_Report_${trip.destination}.pdf`);
@@ -612,7 +589,7 @@ const ExpensesPage = ({ trip, places }) => {
                         >
                           <span>{user.name}</span>
                           <span className="font-semibold">
-                            ₹{user.total.toFixed(2)}
+                            Rs.{user.total.toFixed(2)}
                           </span>
                         </li>
                       ))}
@@ -628,7 +605,7 @@ const ExpensesPage = ({ trip, places }) => {
                   Expense Timeline
                 </h3>
                 <p className="text-lg font-bold text-gray-800 mb-4">
-                  Total Expenses: ₹{totalExpenses.toFixed(2)}
+                  Total Expenses: Rs.{totalExpenses.toFixed(2)}
                 </p>
                 <button
                   onClick={handleDownloadPdf}
@@ -663,7 +640,7 @@ const ExpensesPage = ({ trip, places }) => {
                             >
                               <div>
                                 <p className="font-medium text-gray-800">
-                                  ₹{expense.amount.toFixed(2)} -{" "}
+                                  Rs.{expense.amount.toFixed(2)} -{" "}
                                   {expense.description || "No description"}
                                 </p>
                                 <p className="text-sm text-gray-600">
@@ -676,12 +653,14 @@ const ExpensesPage = ({ trip, places }) => {
                                   </p>
                                 )}
                                 <p className="text-xs text-gray-500">
-                                  {expense.payment_time ? new Date(
-                                    expense.payment_time
-                                  ).toLocaleTimeString(undefined, {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  }) : 'N/A'}
+                                  {expense.payment_time
+                                    ? new Date(
+                                        expense.payment_time
+                                      ).toLocaleTimeString(undefined, {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
+                                    : "N/A"}
                                 </p>
                               </div>
                               <button

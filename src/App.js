@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import jsPDF from "jspdf";
 // import html2canvas from "html2canvas";
 import ExpensesPage from "./ExpensesPage";
+import autoTable from "jspdf-autotable";
 
 const categories = [
   "historical",
@@ -43,15 +44,15 @@ const formatDate = (iso) => {
 
 const categoryColor = (category) => {
   const colors = {
-    'historical': 'bg-[#c9a37c]/20 text-[#c9a37c]', // Tan with transparency
-    'restaurant': 'bg-[#7bbbff]/20 text-[#7bbbff]', // Sky Blue with transparency
-    'shopping': 'bg-[#9ed454]/20 text-[#9ed454]', // Lime Green with transparency
-    'nature': 'bg-[#bcf5ff]/20 text-[#bcf5ff]', // Pale Cyan with transparency
-    'adventure': 'bg-[#5c55e1]/20 text-[#5c55e1]', // Medium Slate Blue with transparency
-    'cultural': 'bg-[#7bbbff]/20 text-[#7bbbff]', // Sky Blue with transparency
-    'entertainment': 'bg-[#9ed454]/20 text-[#9ed454]', // Lime Green with transparency
+    historical: "bg-[#c9a37c]/20 text-[#c9a37c]", // Tan with transparency
+    restaurant: "bg-[#7bbbff]/20 text-[#7bbbff]", // Sky Blue with transparency
+    shopping: "bg-[#9ed454]/20 text-[#9ed454]", // Lime Green with transparency
+    nature: "bg-[#bcf5ff]/20 text-[#bcf5ff]", // Pale Cyan with transparency
+    adventure: "bg-[#5c55e1]/20 text-[#5c55e1]", // Medium Slate Blue with transparency
+    cultural: "bg-[#7bbbff]/20 text-[#7bbbff]", // Sky Blue with transparency
+    entertainment: "bg-[#9ed454]/20 text-[#9ed454]", // Lime Green with transparency
   };
-  return colors[category] || 'bg-gray-100 text-gray-800';
+  return colors[category] || "bg-gray-100 text-gray-800";
 };
 
 const Home = ({
@@ -237,9 +238,7 @@ const Nav = ({ currentView, setCurrentView }) => {
           <button
             onClick={() => setCurrentView("home")}
             className={`px-3 py-2 rounded ${
-              currentView === "home"
-                ? "bg-[#7bbbff]"
-                : "hover:bg-[#5c55e1]/80"
+              currentView === "home" ? "bg-[#7bbbff]" : "hover:bg-[#5c55e1]/80"
             }`}
           >
             Home
@@ -418,7 +417,7 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Budget (₹)
+          Budget (Rs.)
         </label>
         <input
           type="number"
@@ -438,7 +437,14 @@ const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
   </div>
 );
 
-const Places = ({ addPlace, placeForm, setPlaceForm, places, removePlace, trip }) => (
+const Places = ({
+  addPlace,
+  placeForm,
+  setPlaceForm,
+  places,
+  removePlace,
+  trip,
+}) => (
   <div className="max-w-6xl mx-auto p-6">
     <h2 className="text-3xl font-bold text-slate-700 mb-6">Manage Places</h2>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -831,91 +837,247 @@ const Planner = ({
   );
 };
 
-const TimelineView = ({
-  trip,
-  dayPlans,
-}) => {
+const TimelineView = ({ trip, dayPlans }) => {
   const handleDownloadPdf = () => {
+    if (!trip) return;
+
     const doc = new jsPDF();
-    let yPos = 15; // Initial Y position
-    const margin = 15; // Left/right margin
-    const leftMargin = 15; // Define leftMargin here
-    const lineHeight = 7; // Standard line height
-    // const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+    const leftMargin = 15;
+    const rightMargin = 15;
+    const contentWidth = pageWidth - leftMargin - rightMargin;
+    let yPos = 0; // Start from top for header
 
-    // Helper to add text and manage Y position
-    const addText = (text, x, y, options = {}) => {
-      doc.text(text, x, y, options);
-      yPos = y + lineHeight;
+    const addHeader = (pageNumber) => {
+      doc.setFillColor(41, 128, 185); // Blue color
+      doc.rect(0, 0, pageWidth, 40, "F"); // Blue background rectangle for header
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255); // White text
+      doc.text(`Trip Timeline: ${trip.destination}`, pageWidth / 2, 15, {
+        align: "center",
+      });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(255, 255, 255); // White text
+      doc.text(
+        `Dates: ${new Date(trip.start_date).toLocaleDateString()} - ${new Date(
+          trip.end_date
+        ).toLocaleDateString()}`,
+        pageWidth / 2,
+        25,
+        { align: "center" }
+      );
+      yPos = 55; // Set yPos after header
+
+      // Add footer to every page
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(150, 150, 150); // Gray color
+      doc.text(
+        `Generated: ${new Date().toLocaleString()} | Page ${pageNumber} of ${doc.internal.getNumberOfPages()}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: "center" }
+      );
     };
 
-    // Helper to check for page break
-    const checkPageBreak = () => {
-      if (yPos > doc.internal.pageSize.getHeight() - margin) {
-        doc.addPage();
-        yPos = margin; // Reset Y position for new page
+    // Add header to the first page
+    addHeader(1);
+
+    // Timeline
+    const timelineData = [];
+    dayPlans.forEach((day, dayIndex) => {
+      if (day.items.length > 0) {
+        day.items
+          .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""))
+          .forEach((item) => {
+            timelineData.push([
+              `Day ${dayIndex + 1}`,
+              item.placeName,
+              `${item.startTime} - ${item.endTime}`,
+              item.category,
+              item.travelTimeToNext ? `${item.travelTimeToNext} min` : "-",
+            ]);
+          });
+      } else {
+        timelineData.push([
+          `Day ${dayIndex + 1}`,
+          "No items scheduled",
+          "",
+          "",
+          "",
+        ]);
       }
-    };
+    });
 
-    // --- Trip Overview ---
-    addText(`Trip to ${trip.destination}`, margin, yPos);
-    yPos += 5; // Extra space after title
-
+    // Content generation
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    addText(`Dates: ${new Date(trip.start_date).toLocaleDateString()} - ${new Date(
-      trip.end_date
-    ).toLocaleDateString()}`, margin, yPos);
-    yPos += 10; // Space before expenses
-
-    // --- Timeline Details ---
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    addText('Detailed Itinerary', margin, yPos);
-    yPos += 5; // Extra space after section title
+    doc.setTextColor(0, 0, 0); // Black text for content
 
     dayPlans.forEach((day, dayIndex) => {
-      checkPageBreak();
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      addText(`\nDay ${dayIndex + 1}: ${formatDate(day.date)}`, margin, yPos);
-      yPos += 3; // Space after day title
+      // Add day header
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(formatDate(day.date), leftMargin, yPos);
+      yPos += 10;
 
-      if (day.items.length === 0) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'italic');
-        addText('No items scheduled for this day.', margin + 5, yPos);
-        yPos += 5; // Space after message
-      } else {
+      if (day.items.length > 0) {
+        // const itemHeight = 20; // Height of each place box
+        // const itemWidth = contentWidth * 0.7; // Width of each place box
+        // const xOffset = leftMargin + (contentWidth - itemWidth) / 2; // Center the boxes
+
+        const itemHeight = 25; // Increased height for better spacing
+        const itemWidth = contentWidth * 0.7; // Width of each place box
+        const xOffset = leftMargin + (contentWidth - itemWidth) / 2; // Center the boxes
+        const cornerRadius = 3; // For rounded rectangles
+
         day.items
           .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""))
           .forEach((item, itemIndex) => {
-            checkPageBreak();
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-
-            const itemText = `${itemIndex + 1}. ${item.placeName} (${item.startTime} - ${item.endTime})`;
-            addText(itemText, margin + 5, yPos);
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            addText(`   Category: ${item.category}`, margin + 5, yPos);
-
-            if (item.travelTimeToNext) {
-              addText(`   Travel to next: ${item.travelTimeToNext} min`, margin + 5, yPos);
+            // Check for page break before drawing item
+            if (
+              yPos + itemHeight + 25 > pageHeight - 30 &&
+              itemIndex < day.items.length - 1
+            ) {
+              // Increased threshold for better page breaks
+              doc.addPage();
+              addHeader(doc.internal.getNumberOfPages());
+              yPos = 55; // Reset yPos for new page, after header
             }
-            yPos += 3; // Space after item details
+
+            // Draw subtle shadow (optional, for depth)
+            doc.setFillColor(200, 200, 200); // Darker gray for shadow
+            doc.roundedRect(
+              xOffset + 1,
+              yPos + 1,
+              itemWidth,
+              itemHeight,
+              cornerRadius,
+              cornerRadius,
+              "F"
+            );
+
+            // Draw place box
+            doc.setFillColor(255, 255, 255); // White background for box
+            doc.setDrawColor(100, 100, 100); // Darker gray border
+            doc.setLineWidth(0.2);
+            doc.roundedRect(
+              xOffset,
+              yPos,
+              itemWidth,
+              itemHeight,
+              cornerRadius,
+              cornerRadius,
+              "FD"
+            ); // Fill and Draw
+
+            // Add place details
+            doc.setFontSize(11);
+            doc.setTextColor(50, 50, 50); // Darker text
+            doc.setFont("helvetica", "bold");
+            doc.text(item.placeName, xOffset + 5, yPos + 9); // Adjusted text position
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.text(
+              `${item.startTime} - ${item.endTime}`,
+              xOffset + 5,
+              yPos + 18
+            ); // Adjusted text position
+
+            // Add category badge
+            const categoryText = item.category;
+            const categoryTextWidth = doc.getStringUnitWidth(categoryText) * 9; // Estimate width
+            const categoryX = xOffset + itemWidth - categoryTextWidth - 8; // Position from right
+            const categoryY = yPos + 7;
+            doc.setFillColor(180, 210, 230); // Light blue background for badge
+            doc.roundedRect(
+              categoryX - 2,
+              categoryY - 4,
+              categoryTextWidth + 4,
+              7,
+              1,
+              1,
+              "F"
+            );
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(8);
+            doc.text(categoryText, categoryX, categoryY);
+
+            yPos += itemHeight;
+
+            // Draw travel time and connecting line if not the last item
+            if (item.travelTimeToNext && itemIndex < day.items.length - 1) {
+              const lineLength = 18; // Increased line length
+              doc.setDrawColor(150, 150, 150); // Gray line
+              doc.setLineWidth(0.5);
+              doc.line(
+                xOffset + itemWidth / 2,
+                yPos,
+                xOffset + itemWidth / 2,
+                yPos + lineLength
+              );
+
+              // Travel time box
+              const travelTimeText = `${item.travelTimeToNext} min`;
+              const travelTimeTextWidth =
+                doc.getStringUnitWidth(travelTimeText) * 8;
+              const travelTimeBoxWidth = travelTimeTextWidth + 6;
+              const travelTimeBoxHeight = 8;
+              const travelTimeBoxX =
+                xOffset + itemWidth / 2 - travelTimeBoxWidth / 2;
+              const travelTimeBoxY =
+                yPos + lineLength / 2 - travelTimeBoxHeight / 2;
+
+              doc.setFillColor(255, 255, 255); // White background for travel time box
+              doc.roundedRect(
+                travelTimeBoxX,
+                travelTimeBoxY,
+                travelTimeBoxWidth,
+                travelTimeBoxHeight,
+                1,
+                1,
+                "FD"
+              );
+              doc.setTextColor(80, 80, 80); // Darker gray for travel time text
+              doc.setFontSize(8);
+              doc.text(
+                travelTimeText,
+                xOffset + itemWidth / 2,
+                yPos + lineLength / 2 + 1,
+                { align: "center" }
+              ); // Centered text
+
+              yPos += lineLength;
+            } else yPos += 3; // Increased space between items
           });
+      } else {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "italic");
+        doc.text("No items scheduled for this day.", leftMargin + 5, yPos);
+        yPos += 10;
       }
-      yPos += 5; // Space after each day
+      yPos += 15; // Space after each day section
+
+      // Check for page break
+      if (yPos > pageHeight - 30 && dayIndex < dayPlans.length - 1) {
+        doc.addPage();
+        addHeader(doc.internal.getNumberOfPages());
+        yPos = 55; // Reset yPos for new page, after header
+      }
     });
 
-    doc.save(`Trip_to_${trip._id}.pdf`);
+    doc.save(`Timeline_${trip.destination}.pdf`);
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-3xl font-bold text-slate-700 mb-6">Full Trip Timeline</h2>
+      <h2 className="text-3xl font-bold text-slate-700 mb-6">
+        Full Trip Timeline
+      </h2>
       {!trip && (
         <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
           Create and save a trip first in Trip Setup.
@@ -938,8 +1100,6 @@ const TimelineView = ({
     </div>
   );
 };
-
-
 
 const EditScheduleItemModal = ({ isOpen, onClose, item, onSave }) => {
   const [editedStartTime, setEditedStartTime] = useState(item?.startTime || "");
@@ -1131,7 +1291,9 @@ const App = () => {
     setDayPlans(res.data);
     if (res.data.length > 0) {
       // Try to restore the previously active day, otherwise default to the first day
-      const foundActiveDay = res.data.find(day => day._id === currentActiveDayId);
+      const foundActiveDay = res.data.find(
+        (day) => day._id === currentActiveDayId
+      );
       setActiveDayId(foundActiveDay ? foundActiveDay._id : res.data[0]._id);
     } else {
       setActiveDayId(null);
@@ -1178,8 +1340,15 @@ const App = () => {
   // Trip setup submit
   const handleTripSubmit = async (e) => {
     e.preventDefault();
-    if (!tripForm.name || !tripForm.destination || !tripForm.start_date || !tripForm.end_date) {
-      alert("Please fill in all required trip details (Name, Destination, Start Date, End Date).");
+    if (
+      !tripForm.name ||
+      !tripForm.destination ||
+      !tripForm.start_date ||
+      !tripForm.end_date
+    ) {
+      alert(
+        "Please fill in all required trip details (Name, Destination, Start Date, End Date)."
+      );
       return;
     }
     console.log("Sending tripForm:", tripForm);
@@ -1223,7 +1392,10 @@ const App = () => {
   const addScheduleItem = async (e) => {
     e.preventDefault();
     if (!trip || !activeDayId) {
-      console.log("Cannot add schedule item: trip or activeDayId is missing.", { trip, activeDayId });
+      console.log("Cannot add schedule item: trip or activeDayId is missing.", {
+        trip,
+        activeDayId,
+      });
       return;
     }
     const day = dayPlans.find((d) => d._id === activeDayId);
