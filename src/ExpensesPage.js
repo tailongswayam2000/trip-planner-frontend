@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { paymentUsersAPI, expensesAPI, placesAPI } from "./services/api";
-import HistoryModal from './HistoryModal';
+import { paymentUsersAPI, expensesAPI } from "./services/api";
+import HistoryModal from "./HistoryModal";
 import jsPDF from "jspdf";
 import { applyPlugin } from "jspdf-autotable";
 
 applyPlugin(jsPDF);
-
 
 const AddExpenseModal = ({
   isOpen,
@@ -299,12 +298,13 @@ const ExpensesPage = ({ trip, places }) => {
     const addText = (text, x, y, options = {}) => {
       doc.text(text, x, y, { maxWidth: textWidth, ...options });
       const textLines = doc.splitTextToSize(text, textWidth);
-      yPos = y + (textLines.length * lineHeight);
+      yPos = y + textLines.length * lineHeight;
     };
 
     // Helper to check for page break
     const checkPageBreak = () => {
-      if (yPos > doc.internal.pageSize.getHeight() - 30) { // Reduced margin for footer
+      if (yPos > doc.internal.pageSize.getHeight() - 30) {
+        // Reduced margin for footer
         doc.addPage();
         yPos = leftMargin; // Reset Y position for new page
       }
@@ -359,7 +359,7 @@ const ExpensesPage = ({ trip, places }) => {
 
         groupedExpenses[date].forEach((expense) => {
           checkPageBreak();
-          const startYForEntry = yPos; // Store starting Y for this entry
+          // const startYForEntry = yPos; // Store starting Y for this entry
 
           // Line 1: Amount (bold)
           doc.setFontSize(12);
@@ -369,17 +369,21 @@ const ExpensesPage = ({ trip, places }) => {
           // Line 2: Description, Paid By, Mode
           doc.setFontSize(12);
           doc.setFont("times", "normal");
-          const descriptionLine = `${expense.description || "No description"} (Paid by: ${expense.paymentUserName || "N/A"}, Mode: ${expense.modeOfPayment})`;
+          const descriptionLine = `${
+            expense.description || "No description"
+          } (Paid by: ${expense.paymentUserName || "N/A"}, Mode: ${
+            expense.modeOfPayment
+          })`;
           addText(descriptionLine, leftMargin, yPos);
 
           // Line 3: Time
           doc.setFontSize(10);
           doc.setFont("times", "italic");
           addText(
-            `Time: ${new Date(expense.paymentTime).toLocaleTimeString(
-              "en-US",
-              { hour: "2-digit", minute: "2-digit" }
-            )}`,
+            `Time: ${new Date(expense.paymentTime).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}`,
             leftMargin,
             yPos
           );
@@ -414,16 +418,20 @@ const ExpensesPage = ({ trip, places }) => {
       yPos += 5; // Space after message
     } else {
       const colWidth = textWidth / 2; // Divide available width for two columns
-      const tableStartY = yPos;
+      // const tableStartY = yPos;
 
       // Table Headers
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.setFillColor(92, 85, 225); // Tailwind bg-[#5c55e1]
       doc.setTextColor(255, 255, 255);
-      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, 'F'); // Draw filled rectangle for header
+      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, "F"); // Draw filled rectangle for header
       doc.text("Payer Name", leftMargin + 2, yPos + lineHeight);
-      doc.text("Total Amount (₹)", leftMargin + colWidth + 2, yPos + lineHeight);
+      doc.text(
+        "Total Amount (₹)",
+        leftMargin + colWidth + 2,
+        yPos + lineHeight
+      );
       yPos += lineHeight + 2; // Move yPos past header
 
       // Table Rows
@@ -433,9 +441,13 @@ const ExpensesPage = ({ trip, places }) => {
       usersWithPayments.forEach((user, index) => {
         checkPageBreak();
         const rowY = yPos;
-        doc.rect(leftMargin, rowY, textWidth, lineHeight + 2, 'S'); // Draw border for row
+        doc.rect(leftMargin, rowY, textWidth, lineHeight + 2, "S"); // Draw border for row
         doc.text(user.name, leftMargin + 2, rowY + lineHeight);
-        doc.text(user.total.toFixed(2), leftMargin + colWidth + 2, rowY + lineHeight);
+        doc.text(
+          user.total.toFixed(2),
+          leftMargin + colWidth + 2,
+          rowY + lineHeight
+        );
         yPos += lineHeight + 2;
       });
 
@@ -444,10 +456,14 @@ const ExpensesPage = ({ trip, places }) => {
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.setFillColor(240, 240, 240); // Light gray background
-      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, 'F'); // Fill first
-      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, 'S'); // Then stroke
+      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, "F"); // Fill first
+      doc.rect(leftMargin, yPos, textWidth, lineHeight + 2, "S"); // Then stroke
       doc.text("Overall Total", leftMargin + 2, yPos + lineHeight);
-      doc.text(totalExpenses.toFixed(2), leftMargin + colWidth + 2, yPos + lineHeight);
+      doc.text(
+        totalExpenses.toFixed(2),
+        leftMargin + colWidth + 2,
+        yPos + lineHeight
+      );
       yPos += lineHeight + 2;
     }
 

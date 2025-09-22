@@ -4,7 +4,7 @@ import "./Timeline.css";
 import { tripAPI, placesAPI, itineraryAPI } from "./services/api";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+// import html2canvas from "html2canvas";
 import ExpensesPage from "./ExpensesPage";
 
 const categories = [
@@ -878,7 +878,7 @@ const TimelineView = ({
     let yPos = 15; // Initial Y position
     const margin = 15; // Left/right margin
     const lineHeight = 7; // Standard line height
-    const pageWidth = doc.internal.pageSize.getWidth();
+    // const pageWidth = doc.internal.pageSize.getWidth();
 
     // Helper to add text and manage Y position
     const addText = (text, x, y, options = {}) => {
