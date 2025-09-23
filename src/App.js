@@ -66,13 +66,6 @@ const Home = ({
 }) => {
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-8">
-        <TripSetup
-          handleTripSubmit={handleTripSubmit}
-          tripForm={tripForm}
-          setTripForm={setTripForm}
-        />
-      </div>
       <div>
         <h2 className="text-3xl font-bold text-slate-700 mb-6">Your Trips</h2>
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -94,7 +87,7 @@ const Home = ({
                       {formatDate(trip.end_date)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <button
                       onClick={() => onSelectTrip(trip._id)}
                       className="px-3 py-1 bg-[#7bbbff] text-white rounded hover:bg-[#5c55e1] transition duration-150 ease-in-out"
@@ -113,6 +106,13 @@ const Home = ({
             </ul>
           )}
         </div>
+      </div>
+      <div className=" mt-8">
+        <TripSetup
+          handleTripSubmit={handleTripSubmit}
+          tripForm={tripForm}
+          setTripForm={setTripForm}
+        />
       </div>
     </div>
   );
@@ -603,7 +603,7 @@ const Planner = ({
       <h2 className="text-3xl font-bold text-slate-700 mb-6">Daily Planner</h2>
       {!trip && (
         <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
-          Create and save a trip first in Trip Setup.
+          Select a Trip from the Home page.
         </div>
       )}
       {trip && (
@@ -1083,7 +1083,7 @@ const TimelineView = ({ trip, dayPlans }) => {
       </h2>
       {!trip && (
         <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
-          Create and save a trip first in Trip Setup.
+          Select a Trip from Home page.
         </div>
       )}
       {trip && (
@@ -1366,7 +1366,7 @@ const App = () => {
       days.map((date) => itineraryAPI.createDayPlan({ tripId: t._id, date }))
     );
     await refreshItinerary(t._id);
-    setCurrentView("planner");
+    setCurrentView("places");
   };
 
   // Places create/delete
@@ -1460,6 +1460,10 @@ const App = () => {
   return (
     <div className="min-h-screen bg-white">
       <Nav currentView={currentView} setCurrentView={setCurrentView} />
+      <div className="ml-3 mt-1 text-sm italic text-gray-500">
+        {`Currently selected trip: ${trip?.destination || "None"}`}
+      </div>
+
       <main className="py-8">
         {currentView === "home" && (
           <Home

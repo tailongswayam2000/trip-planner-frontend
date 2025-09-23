@@ -509,7 +509,7 @@ const ExpensesPage = ({ trip, places }) => {
 
         {!trip && (
           <div className="bg-white p-4 rounded border border-gray-200 shadow-sm mb-6">
-            Please select a trip to track expenses.
+            Please select a trip from Home page to track expenses for.
           </div>
         )}
 
