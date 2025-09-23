@@ -9,6 +9,7 @@ import ExpensesPage from "./ExpensesPage";
 import autoTable from "jspdf-autotable";
 
 const categories = [
+  "stay",
   "historical",
   "restaurant",
   "shopping",
