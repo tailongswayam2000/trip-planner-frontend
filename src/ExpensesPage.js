@@ -184,14 +184,14 @@ const ExpensesPage = ({ trip, places }) => {
 
   useEffect(() => {
     if (trip) {
-      fetchPaymentUsers();
+      fetchPaymentUsers(trip._id);
       fetchExpenses(trip._id);
     }
   }, [trip]);
 
-  const fetchPaymentUsers = async () => {
+  const fetchPaymentUsers = async (tripId) => {
     try {
-      const response = await paymentUsersAPI.getAll();
+      const response = await paymentUsersAPI.getAll(tripId);
       setPaymentUsers(response.data);
     } catch (error) {
       console.error("Error fetching payment users:", error);
@@ -218,7 +218,7 @@ const ExpensesPage = ({ trip, places }) => {
     try {
       await paymentUsersAPI.create({ name: newUserName, trip_id: trip._id });
       setNewUserName("");
-      fetchPaymentUsers();
+      fetchPaymentUsers(trip._id);
     } catch (error) {
       console.error("Error adding user:", error);
       alert(error.response?.data?.error || "Failed to add user");
@@ -237,7 +237,7 @@ const ExpensesPage = ({ trip, places }) => {
       console.log("Calling paymentUsersAPI.delete for user ID:", userId);
       await paymentUsersAPI.delete(userId);
       console.log("User deleted successfully on backend.");
-      fetchPaymentUsers();
+      fetchPaymentUsers(trip._id);
       fetchExpenses(trip._id); // Refresh expenses as user might be linked
       console.log("Frontend state refreshed after user deletion.");
     } catch (error) {
@@ -693,6 +693,7 @@ const ExpensesPage = ({ trip, places }) => {
         <HistoryModal
           isOpen={showHistoryModal}
           onClose={() => setShowHistoryModal(false)}
+          trip={trip}
         />
       )}
     </>

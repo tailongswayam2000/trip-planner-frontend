@@ -20,7 +20,10 @@ export const tripAPI = {
 
 // Places
 export const placesAPI = {
-  getAll: () => api.get("/places"),
+  getAll: (tripId) => {
+    const url = tripId ? `/places?trip_id=${tripId}` : "/places";
+    return api.get(url);
+  },
   getById: (id) => api.get(`/places/${id}`),
   create: (place) => api.post("/places", place),
   update: (id, place) => api.put(`/places/${id}`, place),
@@ -50,7 +53,10 @@ export const healthAPI = {
 
 // Payment Users
 export const paymentUsersAPI = {
-  getAll: () => api.get("/payment_users"),
+  getAll: (tripId) => {
+    const url = tripId ? `/payment_users?trip_id=${tripId}` : "/payment_users";
+    return api.get(url);
+  },
   getById: (id) => api.get(`/payment_users/${id}`),
   create: (user) => api.post("/payment_users", user),
   update: (id, user) => api.put(`/payment_users/${id}`, user),
@@ -69,7 +75,10 @@ export const expensesAPI = {
 
 // Ledger
 export const ledgerAPI = {
-  getAll: () => api.get("/ledger"),
+  getAll: (tripId) => {
+    const url = tripId ? `/ledger?trip_id=${tripId}` : "/ledger";
+    return api.get(url);
+  },
 };
 
 export default api;

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { ledgerAPI } from './services/api';
 
-const HistoryModal = ({ isOpen, onClose }) => {
+const HistoryModal = ({ isOpen, onClose, trip }) => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && trip) {
       const fetchLedgerEntries = async () => {
         try {
           setLoading(true);
-          const response = await ledgerAPI.getAll();
+          const response = await ledgerAPI.getAll(trip._id);
           console.log("Ledger entries received:", response.data);
           setLedgerEntries(response.data);
         } catch (err) {
@@ -22,8 +22,12 @@ const HistoryModal = ({ isOpen, onClose }) => {
         }
       };
       fetchLedgerEntries();
+    } else if (isOpen && !trip) {
+      setError("Please select a trip to view ledger history.");
+      setLedgerEntries([]);
+      setLoading(false);
     }
-  }, [isOpen]);
+  }, [isOpen, trip]);
 
   if (!isOpen) return null;
 

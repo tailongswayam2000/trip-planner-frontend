@@ -1273,9 +1273,6 @@ const App = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        // Fetch places
-        placesAPI.getAll().then((r) => setPlaces(r.data));
-
         // Fetch all trips
         tripAPI.getAll().then((res) => setAllTrips(res.data));
       } catch (err) {
@@ -1285,6 +1282,17 @@ const App = () => {
 
     loadInitialData();
   }, []); // Empty dependency array ensures this runs only once on mount
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      if (trip) {
+        placesAPI.getAll(trip._id).then((r) => setPlaces(r.data));
+      } else {
+        setPlaces([]); // Clear places if no trip is selected
+      }
+    };
+    fetchPlaces();
+  }, [trip]); // Re-run when trip changes
 
   // Helpers
   const refreshItinerary = async (tripId) => {
