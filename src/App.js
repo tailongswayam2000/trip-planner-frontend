@@ -26,7 +26,7 @@ const getDateRange = (start, end) => {
   const s = new Date(start);
   const e = new Date(end);
   let d = new Date(s);
-  while (d < e) {
+  while (d <= e) {
     out.push(d.toISOString().slice(0, 10));
     d.setDate(d.getDate() + 1);
   }
@@ -240,49 +240,44 @@ const Nav = ({ currentView, setCurrentView }) => {
         <div className={`hidden md:flex gap-2`}>
           <button
             onClick={() => setCurrentView("home")}
-            className={`px-3 py-2 rounded ${
-              currentView === "home" ? "bg-[#7bbbff]" : "hover:bg-[#5c55e1]/80"
-            }`}
+            className={`px-3 py-2 rounded ${currentView === "home" ? "bg-[#7bbbff]" : "hover:bg-[#5c55e1]/80"
+              }`}
           >
             Home
           </button>
           <button
             onClick={() => setCurrentView("places")}
-            className={`px-3 py-2 rounded ${
-              currentView === "places"
-                ? "bg-[#7bbbff]"
-                : "hover:bg-[#5c55e1]/80"
-            }`}
+            className={`px-3 py-2 rounded ${currentView === "places"
+              ? "bg-[#7bbbff]"
+              : "hover:bg-[#5c55e1]/80"
+              }`}
           >
             Places
           </button>
           <button
             onClick={() => setCurrentView("planner")}
-            className={`px-3 py-2 rounded ${
-              currentView === "planner"
-                ? "bg-[#7bbbff]"
-                : "hover:bg-[#5c55e1]/80"
-            }`}
+            className={`px-3 py-2 rounded ${currentView === "planner"
+              ? "bg-[#7bbbff]"
+              : "hover:bg-[#5c55e1]/80"
+              }`}
           >
             Daily Planner
           </button>
           <button
             onClick={() => setCurrentView("timeline")}
-            className={`px-3 py-2 rounded ${
-              currentView === "timeline"
-                ? "bg-[#7bbbff]"
-                : "hover:bg-[#5c55e1]/80"
-            }`}
+            className={`px-3 py-2 rounded ${currentView === "timeline"
+              ? "bg-[#7bbbff]"
+              : "hover:bg-[#5c55e1]/80"
+              }`}
           >
             Timeline
           </button>
           <button
             onClick={() => setCurrentView("expenses")}
-            className={`px-3 py-2 rounded ${
-              currentView === "expenses"
-                ? "bg-[#7bbbff]"
-                : "hover:bg-[#5c55e1]/80"
-            }`}
+            className={`px-3 py-2 rounded ${currentView === "expenses"
+              ? "bg-[#7bbbff]"
+              : "hover:bg-[#5c55e1]/80"
+              }`}
           >
             Expenses
           </button>
@@ -295,9 +290,8 @@ const Nav = ({ currentView, setCurrentView }) => {
               setCurrentView("home");
               setIsMenuOpen(false);
             }}
-            className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "home" ? "bg-[#7bbbff]" : ""
-            }`}
+            className={`block w-full text-left px-3 py-2 rounded ${currentView === "home" ? "bg-[#7bbbff]" : ""
+              }`}
           >
             Home
           </button>
@@ -306,9 +300,8 @@ const Nav = ({ currentView, setCurrentView }) => {
               setCurrentView("places");
               setIsMenuOpen(false);
             }}
-            className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "places" ? "bg-[#7bbbff]" : ""
-            }`}
+            className={`block w-full text-left px-3 py-2 rounded ${currentView === "places" ? "bg-[#7bbbff]" : ""
+              }`}
           >
             Places
           </button>
@@ -317,9 +310,8 @@ const Nav = ({ currentView, setCurrentView }) => {
               setCurrentView("planner");
               setIsMenuOpen(false);
             }}
-            className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "planner" ? "bg-[#7bbbff]" : ""
-            }`}
+            className={`block w-full text-left px-3 py-2 rounded ${currentView === "planner" ? "bg-[#7bbbff]" : ""
+              }`}
           >
             Daily Planner
           </button>
@@ -328,9 +320,8 @@ const Nav = ({ currentView, setCurrentView }) => {
               setCurrentView("timeline");
               setIsMenuOpen(false);
             }}
-            className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "timeline" ? "bg-[#7bbbff]" : ""
-            }`}
+            className={`block w-full text-left px-3 py-2 rounded ${currentView === "timeline" ? "bg-[#7bbbff]" : ""
+              }`}
           >
             Timeline
           </button>
@@ -339,9 +330,8 @@ const Nav = ({ currentView, setCurrentView }) => {
               setCurrentView("expenses");
               setIsMenuOpen(false);
             }}
-            className={`block w-full text-left px-3 py-2 rounded ${
-              currentView === "expenses" ? "bg-[#7bbbff]" : ""
-            }`}
+            className={`block w-full text-left px-3 py-2 rounded ${currentView === "expenses" ? "bg-[#7bbbff]" : ""
+              }`}
           >
             Expenses
           </button>
@@ -645,11 +635,10 @@ const Planner = ({
                   <button
                     key={d._id}
                     onClick={() => setActiveDayId(d._id)}
-                    className={`w-full text-left p-2 rounded border border-gray-300 ${
-                      activeDayId === d._id
-                        ? "bg-[#7bbbff] text-white"
-                        : "hover:bg-gray-100 text-gray-800"
-                    }`}
+                    className={`w-full text-left p-2 rounded border border-gray-300 ${activeDayId === d._id
+                      ? "bg-[#7bbbff] text-white"
+                      : "hover:bg-gray-100 text-gray-800"
+                      }`}
                   >
                     {formatDate(d.date)} ({d.items.length})
                   </button>
@@ -756,9 +745,8 @@ const Planner = ({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`space-y-2 p-1 rounded ${
-                        snapshot.isDraggingOver ? "bg-[#bcf5ff]/20" : ""
-                      }`}
+                      className={`space-y-2 p-1 rounded ${snapshot.isDraggingOver ? "bg-[#bcf5ff]/20" : ""
+                        }`}
                     >
                       {(activeDay?.items || [])
                         .sort((a, b) => (a.order || 0) - (b.order || 0))
