@@ -311,7 +311,7 @@ const ExpensesPage = ({ trip, places }) => {
     const pageWidth = doc.internal.pageSize.width;
     const leftMargin = 15;
     const rightMargin = 15;
-    const contentWidth = pageWidth - leftMargin - rightMargin;
+    // const contentWidth = pageWidth - leftMargin - rightMargin;
     let yPos = 0; // Start from top for header
 
     const addHeader = (pageNumber) => {
@@ -410,8 +410,7 @@ const ExpensesPage = ({ trip, places }) => {
             doc.setFont("helvetica", "normal");
             doc.setTextColor(150, 150, 150); // Gray color
             doc.text(
-              `Generated: ${new Date().toLocaleString()} | Page ${
-                data.pageNumber
+              `Generated: ${new Date().toLocaleString()} | Page ${data.pageNumber
               } of ${doc.internal.getNumberOfPages()}`,
               pageWidth / 2,
               pageHeight - 10,
@@ -470,8 +469,7 @@ const ExpensesPage = ({ trip, places }) => {
           doc.setFont("helvetica", "normal");
           doc.setTextColor(150, 150, 150); // Gray color
           doc.text(
-            `Generated: ${new Date().toLocaleString()} | Page ${
-              data.pageNumber
+            `Generated: ${new Date().toLocaleString()} | Page ${data.pageNumber
             } of ${doc.internal.getNumberOfPages()}`,
             pageWidth / 2,
             pageHeight - 10,
@@ -655,11 +653,11 @@ const ExpensesPage = ({ trip, places }) => {
                                 <p className="text-xs text-gray-500">
                                   {expense.payment_time
                                     ? new Date(
-                                        expense.payment_time
-                                      ).toLocaleTimeString(undefined, {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })
+                                      expense.payment_time
+                                    ).toLocaleTimeString(undefined, {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })
                                     : "N/A"}
                                 </p>
                               </div>

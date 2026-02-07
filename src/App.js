@@ -6,7 +6,8 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import jsPDF from "jspdf";
 // import html2canvas from "html2canvas";
 import ExpensesPage from "./ExpensesPage";
-import autoTable from "jspdf-autotable";
+// autoTable is imported via side-effect for jsPDF plugin
+import "jspdf-autotable";
 
 const categories = [
   "stay",
@@ -18,7 +19,7 @@ const categories = [
   "cultural",
   "entertainment",
 ];
-const travelModes = ["flight", "train", "car", "bus", "other"];
+// const travelModes = ["flight", "train", "car", "bus", "other"];
 
 const getDateRange = (start, end) => {
   if (!start || !end) return [];
