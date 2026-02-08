@@ -471,7 +471,7 @@ const Timeline = ({ dayPlans }) => {
 };
 
 // Trip Details/Overview component
-const TripDetails = ({ trip }) => {
+const TripDetails = ({ trip, onExitTrip }) => {
   const formatDisplayDate = (dateStr) => {
     if (!dateStr) return "Not set";
     const date = new Date(dateStr);
@@ -513,9 +513,17 @@ const TripDetails = ({ trip }) => {
               <h1 className="text-3xl font-bold mb-2">{trip.name}</h1>
               <p className="text-white/80 text-lg">{trip.destination}</p>
             </div>
-            <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(trip.status)} capitalize`}>
-              {trip.status || "Upcoming"}
-            </span>
+            <div className="flex flex-col items-end gap-3">
+              <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(trip.status)} capitalize`}>
+                {trip.status || "Upcoming"}
+              </span>
+              <button
+                onClick={() => { if (window.confirm("Are you sure you want to exit this trip?")) onExitTrip(); }}
+                className="px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors border border-white/40"
+              >
+                Exit Trip
+              </button>
+            </div>
           </div>
         </div>
 
@@ -543,7 +551,7 @@ const TripDetails = ({ trip }) => {
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-500 mb-1">Budget</p>
             <p className="text-2xl font-bold text-gray-800">
-              {trip.budget ? `${trip.currency || 'USD'} ${trip.budget.toLocaleString()}` : "Not set"}
+              {trip.budget ? `${trip.currency || 'INR'} ${trip.budget.toLocaleString()}` : "Not set"}
             </p>
           </div>
 
@@ -1766,6 +1774,7 @@ const App = () => {
     start_date: "",
     end_date: "",
     budget: "",
+    currency: "INR",
     accessCode: "",
     recoveryQuestion: "",
     recoveryAnswer: "",
@@ -2106,7 +2115,7 @@ const App = () => {
           />
         )}
         {currentView === "overview" && trip && (
-          <TripDetails trip={trip} />
+          <TripDetails trip={trip} onExitTrip={handleExitTrip} />
         )}
         {currentView === "places" && (
           <Places
