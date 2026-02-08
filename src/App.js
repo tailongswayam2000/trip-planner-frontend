@@ -470,6 +470,141 @@ const Timeline = ({ dayPlans }) => {
   );
 };
 
+// Trip Details/Overview component
+const TripDetails = ({ trip }) => {
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return "Not set";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getTripDuration = () => {
+    if (!trip.start_date || !trip.end_date) return null;
+    const start = new Date(trip.start_date);
+    const end = new Date(trip.end_date);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return diffDays;
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      upcoming: "bg-blue-100 text-blue-800",
+      ongoing: "bg-green-100 text-green-800",
+      completed: "bg-gray-100 text-gray-800",
+    };
+    return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
+  const duration = getTripDuration();
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#5c45e1] to-[#7b6bef] px-6 py-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{trip.name}</h1>
+              <p className="text-white/80 text-lg">{trip.destination}</p>
+            </div>
+            <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(trip.status)} capitalize`}>
+              {trip.status || "Upcoming"}
+            </span>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="p-6 space-y-6">
+          {/* Dates Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-500 mb-1">Start Date</p>
+              <p className="text-lg font-semibold text-gray-800">{formatDisplayDate(trip.start_date)}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-500 mb-1">End Date</p>
+              <p className="text-lg font-semibold text-gray-800">{formatDisplayDate(trip.end_date)}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-500 mb-1">Duration</p>
+              <p className="text-lg font-semibold text-gray-800">
+                {duration ? `${duration} day${duration > 1 ? 's' : ''}` : "Not set"}
+              </p>
+            </div>
+          </div>
+
+          {/* Budget Section */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-sm text-gray-500 mb-1">Budget</p>
+            <p className="text-2xl font-bold text-gray-800">
+              {trip.budget ? `${trip.currency || 'USD'} ${trip.budget.toLocaleString()}` : "Not set"}
+            </p>
+          </div>
+
+          {/* Access Code Section */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Access Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                <p className="text-sm text-blue-600 mb-1">Access Code</p>
+                <p className="text-xl font-mono font-bold text-blue-800">{trip.accessCode}</p>
+                <p className="text-xs text-blue-500 mt-2">Share this code with others to let them join the trip</p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                  <span className="text-sm text-gray-600">Recovery Question</span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${trip.recoveryQuestion ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {trip.recoveryQuestion ? 'Set' : 'Not set'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                  <span className="text-sm text-gray-600">Security Question</span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${trip.securityQuestion ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {trip.securityQuestion ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recovery Question Display */}
+          {trip.recoveryQuestion && (
+            <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
+              <p className="text-sm text-amber-600 mb-1">Your Recovery Question</p>
+              <p className="text-gray-800 font-medium">{trip.recoveryQuestion}</p>
+            </div>
+          )}
+
+          {/* Security Question Display */}
+          {trip.securityQuestion && (
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+              <p className="text-sm text-purple-600 mb-1">Security Question (asked when joining)</p>
+              <p className="text-gray-800 font-medium">{trip.securityQuestion}</p>
+            </div>
+          )}
+
+          {/* Created At */}
+          {trip.createdAt && (
+            <div className="text-sm text-gray-400 text-center pt-4 border-t">
+              Trip created on {new Date(trip.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Nav = ({ currentView, setCurrentView, trip, onExitTrip }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const activeClass = "bg-[#5c45e1] text-white";
@@ -491,7 +626,7 @@ const Nav = ({ currentView, setCurrentView, trip, onExitTrip }) => {
           <div className="hidden md:ml-6 md:flex md:items-center md:space-x-2">
             {trip ? (
               <>
-                <button onClick={() => setCurrentView("home")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "home" ? activeClass : inactiveClass}`}>Home</button>
+                <button onClick={() => setCurrentView("overview")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "overview" ? activeClass : inactiveClass}`}>Overview</button>
                 <button onClick={() => setCurrentView("places")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "places" ? activeClass : inactiveClass}`}>Places</button>
                 <button onClick={() => setCurrentView("planner")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "planner" ? activeClass : inactiveClass}`}>Daily Planner</button>
                 <button onClick={() => setCurrentView("timeline")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "timeline" ? activeClass : inactiveClass}`}>Timeline</button>
@@ -521,6 +656,7 @@ const Nav = ({ currentView, setCurrentView, trip, onExitTrip }) => {
             <button onClick={() => { setCurrentView("home"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "home" ? activeClass : inactiveClass}`}>Home</button>
             {trip && (
               <>
+                <button onClick={() => { setCurrentView("overview"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "overview" ? activeClass : inactiveClass}`}>Overview</button>
                 <button onClick={() => { setCurrentView("places"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "places" ? activeClass : inactiveClass}`}>Places</button>
                 <button onClick={() => { setCurrentView("planner"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "planner" ? activeClass : inactiveClass}`}>Daily Planner</button>
                 <button onClick={() => { setCurrentView("timeline"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "timeline" ? activeClass : inactiveClass}`}>Timeline</button>
@@ -1695,7 +1831,7 @@ const App = () => {
           if (res.data && !res.data.requiresSecurityAnswer) {
             setTrip(res.data);
             await refreshItinerary(res.data._id);
-            setCurrentView("planner");
+            setCurrentView("overview");
           }
         } catch (err) {
           console.error("Cached trip invalid", err);
@@ -1747,7 +1883,7 @@ const App = () => {
         budget: selectedTrip.budget,
       });
       await refreshItinerary(selectedTrip._id);
-      setCurrentView("planner");
+      setCurrentView("overview");
     }
   };
 
@@ -1828,7 +1964,7 @@ const App = () => {
         setAllTrips([...allTrips, t]);
       }
       await refreshItinerary(t._id);
-      setCurrentView("planner");
+      setCurrentView("overview");
       return t;
     }
 
@@ -1850,7 +1986,7 @@ const App = () => {
       setAllTrips([...allTrips, t]);
     }
     await refreshItinerary(t._id);
-    setCurrentView("planner");
+    setCurrentView("overview");
     return t;
   };
 
@@ -1968,6 +2104,9 @@ const App = () => {
             setTripForm={setTripForm}
             onJoinTrip={handleJoinTrip}
           />
+        )}
+        {currentView === "overview" && trip && (
+          <TripDetails trip={trip} />
         )}
         {currentView === "places" && (
           <Places
