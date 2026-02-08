@@ -11,7 +11,6 @@ const api = axios.create({
 
 // Trips
 export const tripAPI = {
-  getAll: () => api.get("/trips"),
   getById: (id) => api.get(`/trips/${id}`),
   create: (trip) => api.post("/trips", trip),
   update: (id, trip) => api.put(`/trips/${id}`, trip),
