@@ -87,4 +87,27 @@ export const ledgerAPI = {
   },
 };
 
+// Participants
+export const participantsAPI = {
+  getByTrip: (tripId) => api.get(`/participants/trip/${tripId}`),
+  getSettlingEntities: (tripId) => api.get(`/participants/trip/${tripId}/settling`),
+  create: (participant) => api.post("/participants", participant),
+  update: (id, participant) => api.put(`/participants/${id}`, participant),
+  delete: (id) => api.delete(`/participants/${id}`),
+};
+
+// Families
+export const familiesAPI = {
+  getByTrip: (tripId) => api.get(`/families/trip/${tripId}`),
+  create: (family) => api.post("/families", family),
+  addMember: (familyId, member) => api.post(`/families/${familyId}/members`, member),
+  delete: (id) => api.delete(`/families/${id}`),
+};
+
+// Settlements
+export const settlementsAPI = {
+  calculate: (tripId) => api.get(`/settlements/trip/${tripId}`),
+};
+
 export default api;
+
