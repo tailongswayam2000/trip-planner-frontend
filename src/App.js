@@ -518,7 +518,7 @@ const TripDetails = ({ trip, onExitTrip }) => {
                 {trip.status || "Upcoming"}
               </span>
               <button
-                onClick={() => { if (window.confirm("Are you sure you want to exit this trip?")) onExitTrip(); }}
+                onClick={onExitTrip}
                 className="px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors border border-white/40"
               >
                 Exit Trip
