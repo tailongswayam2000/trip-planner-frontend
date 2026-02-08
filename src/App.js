@@ -64,14 +64,244 @@ const Home = ({
   handleTripSubmit,
   tripForm,
   setTripForm,
+  onJoinTrip,
 }) => {
+  const [activeTab, setActiveTab] = useState("join"); // "join" | "create" | "recover" | "mytrips"
+  const [joinCode, setJoinCode] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+
+  // Security question state
+  const [securityChallenge, setSecurityChallenge] = useState(null);
+  const [securityAnswer, setSecurityAnswer] = useState("");
+
+  // Recovery state
+  const [recoverForm, setRecoverForm] = useState({ name: "", destination: "", answer: "" });
+  const [recoverResult, setRecoverResult] = useState(null);
+  const [recoverError, setRecoverError] = useState("");
+
+  const handleJoinSubmit = async (e) => {
+    e.preventDefault();
+    setJoinError("");
+    setJoinLoading(true);
+    try {
+      const result = await onJoinTrip(joinCode.toLowerCase().trim());
+      if (result.requiresSecurityAnswer) {
+        setSecurityChallenge(result);
+      }
+      // If successful without security, onJoinTrip handles navigation
+    } catch (err) {
+      setJoinError(err.response?.data?.error || "Failed to find trip. Check your code.");
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  const handleSecuritySubmit = async (e) => {
+    e.preventDefault();
+    setJoinError("");
+    setJoinLoading(true);
+    try {
+      await onJoinTrip(joinCode, securityChallenge.tripId, securityAnswer);
+      setSecurityChallenge(null);
+      setSecurityAnswer("");
+    } catch (err) {
+      setJoinError(err.response?.data?.error || "Incorrect answer. Please try again.");
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  const handleRecoverSubmit = async (e) => {
+    e.preventDefault();
+    setRecoverError("");
+    setRecoverResult(null);
+    try {
+      const res = await tripAPI.recoverCode(recoverForm.name, recoverForm.destination, recoverForm.answer);
+      setRecoverResult(res.data);
+    } catch (err) {
+      setRecoverError(err.response?.data?.error || "Could not recover code.");
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-700 mb-6">Your Trips</h2>
+      {/* Tab Navigation */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {["join", "create", "recover", "mytrips"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => {
+              setActiveTab(tab);
+              setJoinError("");
+              setSecurityChallenge(null);
+              setRecoverResult(null);
+              setRecoverError("");
+            }}
+            className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === tab
+              ? "bg-[#5c45e1] text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+          >
+            {tab === "join" && "🔑 Join Trip"}
+            {tab === "create" && "✨ Create Trip"}
+            {tab === "recover" && "🔍 Forgot Code"}
+            {tab === "mytrips" && "📋 My Trips"}
+          </button>
+        ))}
+      </div>
+
+      {/* JOIN TRIP TAB */}
+      {activeTab === "join" && !securityChallenge && (
         <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-slate-700 mb-4">Join a Trip</h2>
+          <p className="text-gray-600 mb-4">
+            Enter the access code shared by the trip creator to join.
+          </p>
+          <form onSubmit={handleJoinSubmit} className="space-y-4">
+            <input
+              type="text"
+              required
+              placeholder="Enter access code (e.g., goa-gang-2026)"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+            />
+            {joinError && <p className="text-red-500 text-sm">{joinError}</p>}
+            <button
+              type="submit"
+              disabled={joinLoading}
+              className="w-full bg-[#7bbbff] text-white py-3 rounded-lg hover:bg-[#5c45e1] transition disabled:opacity-50"
+            >
+              {joinLoading ? "Joining..." : "Join Trip"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* SECURITY QUESTION CHALLENGE */}
+      {activeTab === "join" && securityChallenge && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-slate-700 mb-4">🔐 Security Check</h2>
+          <p className="text-gray-600 mb-4">
+            This trip requires answering a security question.
+          </p>
+          <form onSubmit={handleSecuritySubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {securityChallenge.securityQuestion}
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Your answer..."
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+                value={securityAnswer}
+                onChange={(e) => setSecurityAnswer(e.target.value)}
+              />
+            </div>
+            {joinError && <p className="text-red-500 text-sm">{joinError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSecurityChallenge(null);
+                  setSecurityAnswer("");
+                }}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                disabled={joinLoading}
+                className="flex-1 bg-[#7bbbff] text-white py-3 rounded-lg hover:bg-[#5c45e1] transition disabled:opacity-50"
+              >
+                {joinLoading ? "Verifying..." : "Verify & Join"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* CREATE TRIP TAB */}
+      {activeTab === "create" && (
+        <TripSetup
+          handleTripSubmit={handleTripSubmit}
+          tripForm={tripForm}
+          setTripForm={setTripForm}
+        />
+      )}
+
+      {/* RECOVER CODE TAB */}
+      {activeTab === "recover" && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-slate-700 mb-4">Recover Access Code</h2>
+          <p className="text-gray-600 mb-4">
+            Enter your trip details and recovery answer to retrieve your access code.
+          </p>
+          <form onSubmit={handleRecoverSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Trip Name</label>
+              <input
+                type="text"
+                required
+                placeholder="Exact trip name"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+                value={recoverForm.name}
+                onChange={(e) => setRecoverForm({ ...recoverForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+              <input
+                type="text"
+                required
+                placeholder="Exact destination"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+                value={recoverForm.destination}
+                onChange={(e) => setRecoverForm({ ...recoverForm, destination: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Recovery Answer</label>
+              <input
+                type="text"
+                required
+                placeholder="Your recovery answer"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+                value={recoverForm.answer}
+                onChange={(e) => setRecoverForm({ ...recoverForm, answer: e.target.value })}
+              />
+            </div>
+            {recoverError && <p className="text-red-500 text-sm">{recoverError}</p>}
+            {recoverResult && (
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <p className="text-green-800 font-medium">
+                  ✅ Your access code is: <span className="font-mono bg-green-100 px-2 py-1 rounded">{recoverResult.accessCode}</span>
+                </p>
+                {recoverResult.message && <p className="text-green-600 text-sm mt-1">{recoverResult.message}</p>}
+              </div>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-[#9ed454] text-white py-3 rounded-lg hover:bg-[#7cb83e] transition"
+            >
+              Recover Code
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* MY TRIPS TAB (for seeing trips you've accessed in this session) */}
+      {activeTab === "mytrips" && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-slate-700 mb-4">My Trips</h2>
+          <p className="text-gray-500 text-sm mb-4">
+            These are trips available in the database. For new trips, use access codes.
+          </p>
           {allTrips.length === 0 ? (
-            <p>You have no trips planned yet.</p>
+            <p className="text-gray-500">No trips found.</p>
           ) : (
             <ul className="space-y-4">
               {allTrips.map((trip) => (
@@ -84,20 +314,25 @@ const Home = ({
                       {trip.name} ({trip.destination})
                     </p>
                     <p className="text-sm text-gray-600">
-                      {formatDate(trip.start_date)} -{" "}
-                      {formatDate(trip.end_date)}
+                      {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
                     </p>
+                    {trip.accessCode && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Code: <span className="font-mono bg-gray-100 px-1 rounded">{trip.accessCode}</span>
+                        {trip.isLegacy && <span className="ml-2 text-yellow-600">(legacy)</span>}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={() => onSelectTrip(trip._id)}
-                      className="px-3 py-1 bg-[#7bbbff] text-white rounded hover:bg-[#5c55e1] transition duration-150 ease-in-out"
+                      className="px-3 py-1 bg-[#7bbbff] text-white rounded hover:bg-[#5c45e1] transition"
                     >
                       Select
                     </button>
                     <button
                       onClick={() => onDeleteTrip(trip._id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition duration-150 ease-in-out"
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
                     >
                       Delete
                     </button>
@@ -107,17 +342,11 @@ const Home = ({
             </ul>
           )}
         </div>
-      </div>
-      <div className=" mt-8">
-        <TripSetup
-          handleTripSubmit={handleTripSubmit}
-          tripForm={tripForm}
-          setTripForm={setTripForm}
-        />
-      </div>
+      )}
     </div>
   );
 };
+
 
 // Timeline component
 const Timeline = ({ dayPlans }) => {
@@ -342,94 +571,323 @@ const Nav = ({ currentView, setCurrentView }) => {
   );
 };
 
-const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => (
-  <div className="max-w-3xl mx-auto">
-    <h2 className="text-3xl font-bold text-slate-700 mb-6">
-      Create a New Trip
-    </h2>
-    <form
-      onSubmit={handleTripSubmit}
-      className="space-y-6 bg-white p-6 rounded-lg shadow-md"
-    >
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Trip Name
-        </label>
-        <input
-          type="text"
-          required
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          value={tripForm.name}
-          onChange={(e) => setTripForm({ ...tripForm, name: e.target.value })}
-          placeholder="e.g., Family Vacation to Goa"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Destination
-        </label>
-        <input
-          type="text"
-          required
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          value={tripForm.destination}
-          onChange={(e) =>
-            setTripForm({ ...tripForm, destination: e.target.value })
-          }
-          placeholder="e.g., Goa, India"
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Start Date
-          </label>
-          <input
-            type="date"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={tripForm.start_date}
-            onChange={(e) =>
-              setTripForm({ ...tripForm, start_date: e.target.value })
-            }
-          />
+const TripSetup = ({ handleTripSubmit, tripForm, setTripForm }) => {
+  const [codeAvailable, setCodeAvailable] = useState(null); // null = not checked, true/false
+  const [checkingCode, setCheckingCode] = useState(false);
+  const [enableSecurity, setEnableSecurity] = useState(false);
+  const [createdTrip, setCreatedTrip] = useState(null);
+
+  const checkCodeAvailability = async (code) => {
+    if (!code || code.length < 4) {
+      setCodeAvailable(null);
+      return;
+    }
+    setCheckingCode(true);
+    try {
+      const res = await tripAPI.checkCodeAvailability(code.toLowerCase().trim());
+      setCodeAvailable(res.data.available);
+    } catch (err) {
+      setCodeAvailable(null);
+    } finally {
+      setCheckingCode(false);
+    }
+  };
+
+  // Debounce code check
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (tripForm.accessCode) {
+        checkCodeAvailability(tripForm.accessCode);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [tripForm.accessCode]);
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (codeAvailable === false) {
+      alert("Please choose a different access code - this one is taken.");
+      return;
+    }
+    const result = await handleTripSubmit(e);
+    if (result) {
+      setCreatedTrip(result);
+    }
+  };
+
+  // Show success message after creation
+  if (createdTrip) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-green-50 border border-green-200 p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-green-800 mb-4">🎉 Trip Created Successfully!</h2>
+          <div className="space-y-3">
+            <p className="text-gray-700">
+              <span className="font-medium">Trip:</span> {createdTrip.name} - {createdTrip.destination}
+            </p>
+            <div className="bg-white p-4 rounded-lg border border-green-300">
+              <p className="text-sm text-gray-600 mb-1">Share this access code with your group:</p>
+              <p className="text-2xl font-mono font-bold text-[#5c45e1]">
+                {createdTrip.accessCode}
+              </p>
+            </div>
+            <p className="text-sm text-gray-600">
+              ⚠️ Save this code! You'll need it to access your trip. You can also recover it using the recovery question.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setCreatedTrip(null);
+              setTripForm({
+                name: "",
+                destination: "",
+                start_date: "",
+                end_date: "",
+                budget: "",
+                accessCode: "",
+                recoveryQuestion: "",
+                recoveryAnswer: "",
+                securityQuestion: "",
+                securityAnswer: "",
+              });
+            }}
+            className="mt-4 px-4 py-2 bg-[#7bbbff] text-white rounded-lg hover:bg-[#5c45e1] transition"
+          >
+            Create Another Trip
+          </button>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            End Date
-          </label>
-          <input
-            type="date"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={tripForm.end_date}
-            onChange={(e) =>
-              setTripForm({ ...tripForm, end_date: e.target.value })
-            }
-          />
-        </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Budget (Rs.)
-        </label>
-        <input
-          type="number"
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          value={tripForm.budget}
-          onChange={(e) => setTripForm({ ...tripForm, budget: e.target.value })}
-          placeholder="50000"
-        />
-      </div>
-      <button
-        type="submit"
-        className="w-full bg-[#9ed454] text-white py-3 rounded-lg hover:bg-[#7cb83e] transition duration-150 ease-in-out"
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <h2 className="text-3xl font-bold text-slate-700 mb-6">
+        Create a New Trip
+      </h2>
+      <form
+        onSubmit={onSubmit}
+        className="space-y-6 bg-white p-6 rounded-lg shadow-md"
       >
-        Save Trip Details
-      </button>
-    </form>
-  </div>
-);
+        {/* Basic Trip Info */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Trip Name
+          </label>
+          <input
+            type="text"
+            required
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={tripForm.name}
+            onChange={(e) => setTripForm({ ...tripForm, name: e.target.value })}
+            placeholder="e.g., Family Vacation to Goa"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Destination
+          </label>
+          <input
+            type="text"
+            required
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={tripForm.destination}
+            onChange={(e) =>
+              setTripForm({ ...tripForm, destination: e.target.value })
+            }
+            placeholder="e.g., Goa, India"
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Start Date
+            </label>
+            <input
+              type="date"
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              value={tripForm.start_date}
+              onChange={(e) =>
+                setTripForm({ ...tripForm, start_date: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              End Date
+            </label>
+            <input
+              type="date"
+              required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              value={tripForm.end_date}
+              onChange={(e) =>
+                setTripForm({ ...tripForm, end_date: e.target.value })
+              }
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Budget (Rs.)
+          </label>
+          <input
+            type="number"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={tripForm.budget}
+            onChange={(e) => setTripForm({ ...tripForm, budget: e.target.value })}
+            placeholder="50000"
+          />
+        </div>
+
+        {/* Access Code Section */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-slate-700 mb-4">🔐 Access Code</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Choose an Access Code (min 4 characters)
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                required
+                minLength={4}
+                maxLength={30}
+                className={`w-full p-3 border rounded-lg focus:ring-2 ${codeAvailable === true
+                  ? "border-green-500 focus:ring-green-500"
+                  : codeAvailable === false
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-blue-500"
+                  }`}
+                value={tripForm.accessCode || ""}
+                onChange={(e) =>
+                  setTripForm({ ...tripForm, accessCode: e.target.value.toLowerCase().replace(/\s+/g, '-') })
+                }
+                placeholder="e.g., goa-gang-2026"
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {checkingCode && <span className="text-gray-400">Checking...</span>}
+                {!checkingCode && codeAvailable === true && <span className="text-green-500">✓ Available</span>}
+                {!checkingCode && codeAvailable === false && <span className="text-red-500">✗ Taken</span>}
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">This code will be shared with your group to access the trip.</p>
+          </div>
+        </div>
+
+        {/* Recovery Section */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-slate-700 mb-4">🔑 Recovery (Required)</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Set a recovery question to retrieve your access code if you forget it.
+          </p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Recovery Question
+              </label>
+              <input
+                type="text"
+                required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                value={tripForm.recoveryQuestion || ""}
+                onChange={(e) =>
+                  setTripForm({ ...tripForm, recoveryQuestion: e.target.value })
+                }
+                placeholder="e.g., What's our group's favorite food?"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Recovery Answer
+              </label>
+              <input
+                type="text"
+                required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                value={tripForm.recoveryAnswer || ""}
+                onChange={(e) =>
+                  setTripForm({ ...tripForm, recoveryAnswer: e.target.value })
+                }
+                placeholder="e.g., pizza"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Optional Security Section */}
+        <div className="border-t pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="checkbox"
+              id="enableSecurity"
+              checked={enableSecurity}
+              onChange={(e) => {
+                setEnableSecurity(e.target.checked);
+                if (!e.target.checked) {
+                  setTripForm({ ...tripForm, securityQuestion: "", securityAnswer: "" });
+                }
+              }}
+              className="w-4 h-4 text-[#5c45e1] rounded"
+            />
+            <label htmlFor="enableSecurity" className="text-lg font-semibold text-slate-700">
+              🛡️ Enable Security Question (Optional)
+            </label>
+          </div>
+          {enableSecurity && (
+            <>
+              <p className="text-sm text-gray-600 mb-4">
+                Anyone joining this trip will need to answer this question first.
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Security Question
+                  </label>
+                  <input
+                    type="text"
+                    required={enableSecurity}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={tripForm.securityQuestion || ""}
+                    onChange={(e) =>
+                      setTripForm({ ...tripForm, securityQuestion: e.target.value })
+                    }
+                    placeholder="e.g., Who organized this trip?"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Security Answer
+                  </label>
+                  <input
+                    type="text"
+                    required={enableSecurity}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={tripForm.securityAnswer || ""}
+                    onChange={(e) =>
+                      setTripForm({ ...tripForm, securityAnswer: e.target.value })
+                    }
+                    placeholder="e.g., rahul"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={codeAvailable === false || checkingCode}
+          className="w-full bg-[#9ed454] text-white py-3 rounded-lg hover:bg-[#7cb83e] transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Create Trip
+        </button>
+      </form>
+    </div>
+  );
+};
+
 
 const Places = ({
   addPlace,
@@ -1209,6 +1667,11 @@ const App = () => {
     start_date: "",
     end_date: "",
     budget: "",
+    accessCode: "",
+    recoveryQuestion: "",
+    recoveryAnswer: "",
+    securityQuestion: "",
+    securityAnswer: "",
   });
 
   // Places
@@ -1328,6 +1791,11 @@ const App = () => {
           start_date: "",
           end_date: "",
           budget: "",
+          accessCode: "",
+          recoveryQuestion: "",
+          recoveryAnswer: "",
+          securityQuestion: "",
+          securityAnswer: "",
         });
         setDayPlans([]);
         setActiveDayId(null);
@@ -1344,26 +1812,71 @@ const App = () => {
       !tripForm.name ||
       !tripForm.destination ||
       !tripForm.start_date ||
-      !tripForm.end_date
+      !tripForm.end_date ||
+      !tripForm.accessCode ||
+      !tripForm.recoveryQuestion ||
+      !tripForm.recoveryAnswer
     ) {
       alert(
-        "Please fill in all required trip details (Name, Destination, Start Date, End Date)."
+        "Please fill in all required trip details (Name, Destination, Dates, Access Code, Recovery Q&A)."
       );
-      return;
+      return null;
     }
     console.log("Sending tripForm:", tripForm);
-    const created = await tripAPI.create(tripForm);
-    const t = created.data;
-    setAllTrips([...allTrips, t]);
-    setTrip(t);
+    try {
+      const created = await tripAPI.create(tripForm);
+      const t = created.data;
+      setAllTrips([...allTrips, t]);
+      setTrip(t);
 
-    // Scaffold day plans for each date
-    const days = getDateRange(tripForm.start_date, tripForm.end_date);
-    await Promise.all(
-      days.map((date) => itineraryAPI.createDayPlan({ tripId: t._id, date }))
-    );
+      // Scaffold day plans for each date
+      const days = getDateRange(tripForm.start_date, tripForm.end_date);
+      await Promise.all(
+        days.map((date) => itineraryAPI.createDayPlan({ tripId: t._id, date }))
+      );
+      await refreshItinerary(t._id);
+      return t; // Return the created trip for success handling
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to create trip.");
+      return null;
+    }
+  };
+
+  // Join trip by access code
+  const handleJoinTrip = async (code, tripIdForSecurity = null, securityAnswer = null) => {
+    // If tripId is provided, we're verifying security answer
+    if (tripIdForSecurity && securityAnswer) {
+      const res = await tripAPI.verifySecurity(tripIdForSecurity, securityAnswer);
+      const t = res.data;
+      setTrip(t);
+      // Add to allTrips if not already there
+      if (!allTrips.find(trip => trip._id === t._id)) {
+        setAllTrips([...allTrips, t]);
+      }
+      await refreshItinerary(t._id);
+      setCurrentView("planner");
+      return t;
+    }
+
+    // Otherwise, try to get trip by code
+    const res = await tripAPI.getByCode(code);
+    const data = res.data;
+
+    // If requires security answer, return the challenge
+    if (data.requiresSecurityAnswer) {
+      return data;
+    }
+
+    // No security question, access granted
+    const t = data;
+    setTrip(t);
+    // Add to allTrips if not already there
+    if (!allTrips.find(trip => trip._id === t._id)) {
+      setAllTrips([...allTrips, t]);
+    }
     await refreshItinerary(t._id);
-    setCurrentView("places");
+    setCurrentView("planner");
+    return t;
   };
 
   // Places create/delete
@@ -1470,6 +1983,7 @@ const App = () => {
             handleTripSubmit={handleTripSubmit}
             tripForm={tripForm}
             setTripForm={setTripForm}
+            onJoinTrip={handleJoinTrip}
           />
         )}
         {currentView === "places" && (

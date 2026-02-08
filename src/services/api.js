@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+  process.env.REACT_APP_API_URL || "http://localhost:5001/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,6 +16,12 @@ export const tripAPI = {
   create: (trip) => api.post("/trips", trip),
   update: (id, trip) => api.put(`/trips/${id}`, trip),
   delete: (id) => api.delete(`/trips/${id}`),
+  // Access code endpoints
+  checkCodeAvailability: (code) => api.get(`/trips/check-code/${code}`),
+  getByCode: (code) => api.get(`/trips/code/${code}`),
+  verifySecurity: (tripId, securityAnswer) => api.post("/trips/verify-security", { tripId, securityAnswer }),
+  recoverCode: (name, destination, recoveryAnswer) => api.post("/trips/recover", { name, destination, recoveryAnswer }),
+
 };
 
 // Places
