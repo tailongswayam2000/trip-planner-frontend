@@ -75,10 +75,12 @@ const Home = ({
   const [securityChallenge, setSecurityChallenge] = useState(null);
   const [securityAnswer, setSecurityAnswer] = useState("");
 
-  // Recovery state
+  // Recovery state - two step flow
   const [recoverForm, setRecoverForm] = useState({ name: "", destination: "", answer: "" });
+  const [recoveryQuestion, setRecoveryQuestion] = useState(null); // null = step 1, string = step 2
   const [recoverResult, setRecoverResult] = useState(null);
   const [recoverError, setRecoverError] = useState("");
+  const [recoverLoading, setRecoverLoading] = useState(false);
 
   const handleJoinSubmit = async (e) => {
     e.preventDefault();
@@ -112,16 +114,48 @@ const Home = ({
     }
   };
 
-  const handleRecoverSubmit = async (e) => {
+  // Step 1: Lookup trip and get recovery question
+  const handleRecoverLookup = async (e) => {
     e.preventDefault();
     setRecoverError("");
     setRecoverResult(null);
+    setRecoverLoading(true);
+    try {
+      const res = await tripAPI.getRecoveryQuestion(recoverForm.name, recoverForm.destination);
+      if (res.data.isLegacy) {
+        // Legacy trip - show code directly
+        setRecoverResult(res.data);
+      } else {
+        // Show the question for step 2
+        setRecoveryQuestion(res.data.recoveryQuestion);
+      }
+    } catch (err) {
+      setRecoverError(err.response?.data?.error || "Could not find trip.");
+    } finally {
+      setRecoverLoading(false);
+    }
+  };
+
+  // Step 2: Submit recovery answer
+  const handleRecoverSubmit = async (e) => {
+    e.preventDefault();
+    setRecoverError("");
+    setRecoverLoading(true);
     try {
       const res = await tripAPI.recoverCode(recoverForm.name, recoverForm.destination, recoverForm.answer);
       setRecoverResult(res.data);
     } catch (err) {
-      setRecoverError(err.response?.data?.error || "Could not recover code.");
+      setRecoverError(err.response?.data?.error || "Incorrect answer.");
+    } finally {
+      setRecoverLoading(false);
     }
+  };
+
+  const resetRecovery = () => {
+    setRecoveryQuestion(null);
+    setRecoverResult(null);
+    setRecoverError("");
+    setRecoverForm({ name: "", destination: "", answer: "" });
   };
 
   return (
@@ -236,59 +270,105 @@ const Home = ({
       {activeTab === "recover" && (
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-slate-700 mb-4">Recover Access Code</h2>
-          <p className="text-gray-600 mb-4">
-            Enter your trip details and recovery answer to retrieve your access code.
-          </p>
-          <form onSubmit={handleRecoverSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Trip Name</label>
-              <input
-                type="text"
-                required
-                placeholder="Exact trip name"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
-                value={recoverForm.name}
-                onChange={(e) => setRecoverForm({ ...recoverForm, name: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-              <input
-                type="text"
-                required
-                placeholder="Exact destination"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
-                value={recoverForm.destination}
-                onChange={(e) => setRecoverForm({ ...recoverForm, destination: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Recovery Answer</label>
-              <input
-                type="text"
-                required
-                placeholder="Your recovery answer"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
-                value={recoverForm.answer}
-                onChange={(e) => setRecoverForm({ ...recoverForm, answer: e.target.value })}
-              />
-            </div>
-            {recoverError && <p className="text-red-500 text-sm">{recoverError}</p>}
-            {recoverResult && (
+
+          {/* Show result if we have one */}
+          {recoverResult && (
+            <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                 <p className="text-green-800 font-medium">
                   Your access code is: <span className="font-mono bg-green-100 px-2 py-1 rounded">{recoverResult.accessCode}</span>
                 </p>
                 {recoverResult.message && <p className="text-green-600 text-sm mt-1">{recoverResult.message}</p>}
               </div>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-[#9ed454] text-white py-3 rounded-lg hover:bg-[#7cb83e] transition"
-            >
-              Recover Code
-            </button>
-          </form>
+              <button
+                onClick={resetRecovery}
+                className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition"
+              >
+                Start Over
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: Answer the question */}
+          {!recoverResult && recoveryQuestion && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <p className="text-sm text-blue-600 mb-1">Recovery Question:</p>
+                <p className="text-blue-800 font-medium">{recoveryQuestion}</p>
+              </div>
+              <form onSubmit={handleRecoverSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your Answer</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter your answer"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+                    value={recoverForm.answer}
+                    onChange={(e) => setRecoverForm({ ...recoverForm, answer: e.target.value })}
+                  />
+                </div>
+                {recoverError && <p className="text-red-500 text-sm">{recoverError}</p>}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={resetRecovery}
+                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={recoverLoading}
+                    className="flex-1 bg-[#5c45e1] text-white py-3 rounded-lg hover:bg-[#4a38b8] transition disabled:opacity-50"
+                  >
+                    {recoverLoading ? "Verifying..." : "Recover Code"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Step 1: Enter trip details */}
+          {!recoverResult && !recoveryQuestion && (
+            <>
+              <p className="text-gray-600 mb-4">
+                Enter your trip details to see your recovery question.
+              </p>
+              <form onSubmit={handleRecoverLookup} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trip Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Exact trip name"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+                    value={recoverForm.name}
+                    onChange={(e) => setRecoverForm({ ...recoverForm, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Exact destination"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7bbbff]"
+                    value={recoverForm.destination}
+                    onChange={(e) => setRecoverForm({ ...recoverForm, destination: e.target.value })}
+                  />
+                </div>
+                {recoverError && <p className="text-red-500 text-sm">{recoverError}</p>}
+                <button
+                  type="submit"
+                  disabled={recoverLoading}
+                  className="w-full bg-[#5c45e1] text-white py-3 rounded-lg hover:bg-[#4a38b8] transition disabled:opacity-50"
+                >
+                  {recoverLoading ? "Looking up..." : "Find My Trip"}
+                </button>
+              </form>
+            </>
+          )}
         </div>
       )}
 
@@ -416,13 +496,6 @@ const Nav = ({ currentView, setCurrentView, trip, onExitTrip }) => {
                 <button onClick={() => setCurrentView("planner")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "planner" ? activeClass : inactiveClass}`}>Daily Planner</button>
                 <button onClick={() => setCurrentView("timeline")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "timeline" ? activeClass : inactiveClass}`}>Timeline</button>
                 <button onClick={() => setCurrentView("expenses")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "expenses" ? activeClass : inactiveClass}`}>Expenses</button>
-                <div className="h-6 w-px bg-gray-300 mx-2"></div>
-                <button
-                  onClick={() => { if (window.confirm("Exit this trip session?")) onExitTrip(); }}
-                  className="px-4 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  Exit Trip
-                </button>
               </>
             ) : (
               <button onClick={() => setCurrentView("home")} className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "home" ? activeClass : inactiveClass}`}>Home</button>
@@ -452,7 +525,6 @@ const Nav = ({ currentView, setCurrentView, trip, onExitTrip }) => {
                 <button onClick={() => { setCurrentView("planner"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "planner" ? activeClass : inactiveClass}`}>Daily Planner</button>
                 <button onClick={() => { setCurrentView("timeline"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "timeline" ? activeClass : inactiveClass}`}>Timeline</button>
                 <button onClick={() => { setCurrentView("expenses"); setIsMenuOpen(false); }} className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${currentView === "expenses" ? activeClass : inactiveClass}`}>Expenses</button>
-                <button onClick={() => { onExitTrip(); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50">Exit Trip</button>
               </>
             )}
           </div>

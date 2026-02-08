@@ -19,6 +19,7 @@ export const tripAPI = {
   checkCodeAvailability: (code) => api.get(`/trips/check-code/${code}`),
   getByCode: (code) => api.get(`/trips/code/${code}`),
   verifySecurity: (tripId, securityAnswer) => api.post("/trips/verify-security", { tripId, securityAnswer }),
+  getRecoveryQuestion: (name, destination) => api.post("/trips/recovery-question", { name, destination }),
   recoverCode: (name, destination, recoveryAnswer) => api.post("/trips/recover", { name, destination, recoveryAnswer }),
 
 };
