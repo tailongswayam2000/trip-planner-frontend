@@ -1830,7 +1830,7 @@ const App = () => {
   };
 
   // Load initial data
-  // Load cached trip
+  // Load cached trip on mount
   useEffect(() => {
     const loadCachedTrip = async () => {
       const cachedCode = localStorage.getItem("tripCode");
@@ -1850,6 +1850,7 @@ const App = () => {
     };
 
     loadCachedTrip();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
