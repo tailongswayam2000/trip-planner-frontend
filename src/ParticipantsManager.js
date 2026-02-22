@@ -4,7 +4,6 @@ import { participantsAPI, familiesAPI } from './services/api';
 const ParticipantsManager = ({ trip }) => {
     const [participants, setParticipants] = useState([]);
     const [families, setFamilies] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     // Forms
     const [newFamilyName, setNewFamilyName] = useState('');
@@ -22,7 +21,6 @@ const ParticipantsManager = ({ trip }) => {
 
     const fetchData = async () => {
         if (!trip) return;
-        setLoading(true);
         try {
             const pRes = await participantsAPI.getByTrip(trip._id);
             const fRes = await familiesAPI.getByTrip(trip._id);
@@ -31,7 +29,6 @@ const ParticipantsManager = ({ trip }) => {
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
-            setLoading(false);
         }
     };
 
