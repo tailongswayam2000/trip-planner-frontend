@@ -183,7 +183,7 @@ const AddExpenseModal = ({
           {/* Split Section */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-bold text-gray-700">Split Among (Who consumed this?)</label>
+              <label className="block text-sm font-bold text-gray-700">Split Among</label>
               <label className="flex items-center text-sm text-gray-600 bg-white px-2 py-1 rounded border border-gray-200 shadow-sm cursor-pointer">
                 <input
                   type="checkbox"
