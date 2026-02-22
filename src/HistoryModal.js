@@ -54,7 +54,14 @@ const HistoryModal = ({ isOpen, onClose, trip, inline = false }) => {
                     <p className="text-gray-700">{entry.event_description}</p>
                   </div>
                   <div className="text-right ml-4 flex-shrink-0">
-                    <span className="font-bold text-slate-700">₹{entry.amount?.toLocaleString()}</span>
+                    <span className={`font-bold ${entry.event_description.includes('was added')
+                        ? 'text-green-600'
+                        : entry.event_description.includes('was deleted')
+                          ? 'text-red-600'
+                          : 'text-slate-700'
+                      }`}>
+                      {entry.event_description.includes('was added') ? '+' : entry.event_description.includes('was deleted') ? '-' : ''}₹{entry.amount?.toLocaleString()}
+                    </span>
                     <p className="text-xs text-gray-400 mt-1">
                       {new Date(entry.timestamp).toLocaleString()}
                     </p>
